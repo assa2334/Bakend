@@ -1,70 +1,52 @@
-# Getting Started with Create React App
+# WhatsApp Clone
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This is a full-stack **WhatsApp Clone** application built with the **MERN** stack (MongoDB, Express.js, React.js, Node.js). It provides core functionalities such as real-time messaging, voice and video calls, media sharing, and push notifications, mimicking the core features of WhatsApp.
 
-## Available Scripts
+## Features
 
-In the project directory, you can run:
+- **Real-time messaging**: Instant text messages with Socket.IO for real-time communication.
+- **Voice and video calls**: Peer-to-peer calling functionality using WebRTC.
+- **Group chats**: Support for creating and managing group chats.
+- **Media sharing**: Send and receive images, videos, and documents.
+- **User authentication**: Sign-up and login using JWT tokens.
+- **Push notifications**: Notifications for new messages when offline.
+- **Online/offline status**: Display user availability based on their connection.
+- **Search functionality**: Search through users, messages, and contacts.
 
-### `npm start`
+## Technologies Used
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### Frontend
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- **React.js**: A JavaScript library for building dynamic user interfaces.
+- **React Router**: For navigation and routing within the app.
+- **Redux**: For managing global state, such as message updates and user authentication.
+- **Socket.IO**: For real-time communication between the server and clients.
+- **Material-UI**: For building responsive and modern UI components.
+- **WebRTC**: For real-time voice and video calling.
 
-### `npm test`
+### Backend
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- **Node.js**: JavaScript runtime for server-side logic.
+- **Express.js**: Web framework for building RESTful APIs and handling HTTP requests.
+- **MongoDB**: NoSQL database for storing user data, messages, media, and more.
+- **Mongoose**: ODM (Object Data Modeling) library to interact with MongoDB.
+- **JWT (JSON Web Tokens)**: For secure user authentication.
+- **Socket.IO**: For enabling real-time messaging between users.
+- **Firebase Cloud Storage**: For storing media files (images, videos).
 
-### `npm run build`
+## Installation
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Prerequisites
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+1. **Node.js** and **npm** installed.
+2. **MongoDB** or **MongoDB Atlas** account for database hosting.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Steps to Run Locally
 
-### `npm run eject`
+#### 1. Clone the repository
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+```bash
+git clone https://github.com/yourusername/whatsapp-clone.git
+cd whatsapp-clone
+cd frontend
+npm install
