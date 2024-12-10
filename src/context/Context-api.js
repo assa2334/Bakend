@@ -1,9 +1,20 @@
 import { createContext, useEffect, useState } from "react";
+// import { io } from "socket.io-client";
 
 // Create Theme Context
 export const ThemeContext = createContext();
 
 export const ContextProvider = (props) => {
+  const [user, setuser] = useState({
+    Name: "",
+    FullName: "",
+    Email: "",
+    Password: "",
+    Token: "",
+  });
+  console.log(user);
+  
+  // theme code
   const getInitialMode = () => {
     const savedMode = localStorage.getItem("mode");
     if (savedMode) return savedMode;
@@ -24,8 +35,21 @@ export const ContextProvider = (props) => {
     localStorage.setItem("mode", mode.modetheme);
   }, [mode.modetheme]);
 
+  //socket io
+  //   const socket = useRef();
+  //   useEffect(()=>{
+  //     socket.current = io('http://localhost:3000')
+  //   },[])
+
   return (
-    <ThemeContext.Provider value={{ mode, setMode }}>
+    <ThemeContext.Provider
+      value={{
+        mode,
+        setMode,
+        user,
+        setuser,
+      }}
+    >
       {props.children}
     </ThemeContext.Provider>
   );

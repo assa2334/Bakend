@@ -22,6 +22,8 @@ export const getTheme = (value) =>
       },
       text: {
         primary: value.modetheme === "dark" ? value.dtext : value.ltext, // Use value.modetheme
+        light: value.dtext,
+        dark: value.ltext,
       },
     },
   });
