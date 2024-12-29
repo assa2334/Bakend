@@ -11,7 +11,7 @@ import {
 import VideoChatOutlinedIcon from "@mui/icons-material/VideoChatOutlined";
 import CallIcon from "@mui/icons-material/Call";
 
-export default function Top(params) {
+export default function Top({name,img}) {
   return (
     <>
       <Box
@@ -44,8 +44,8 @@ export default function Top(params) {
             }}
           >
             <Avatar
-              alt="User"
-              src="/static/images/avatar/.jpg"
+              alt={name}
+              src={img}
               sx={{
                 cursor: "pointer",
                 transition: "transform 0.3s ease",
@@ -68,7 +68,7 @@ export default function Top(params) {
                 },
               }}
             >
-              Suabhn
+              {name}
             </Typography>
           </Box>
 

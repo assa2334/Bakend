@@ -1,20 +1,27 @@
-import { createContext, useEffect, useState } from "react";
+import { createContext, useEffect, useState, useMemo } from "react";
 // import { io } from "socket.io-client";
 
-// Create Theme Context
 export const ThemeContext = createContext();
 
 export const ContextProvider = (props) => {
-  const [user, setuser] = useState({
-    Name: "",
-    FullName: "",
-    Email: "",
-    Password: "",
-    Token: "",
-  });
-  console.log(user);
-  
-  // theme code
+  const storedUser = useMemo(() => {
+    return JSON.parse(localStorage.getItem("user"));
+  }, []);
+
+  const [user, setuser] = useState(
+    storedUser || {
+      Name: "",
+      FullName: "",
+      Email: "",
+      Token: "",
+      id: "",
+    }
+  );
+
+  useEffect(() => {
+    localStorage.setItem("user", JSON.stringify(user));
+  }, [user]);
+
   const getInitialMode = () => {
     const savedMode = localStorage.getItem("mode");
     if (savedMode) return savedMode;
@@ -23,10 +30,11 @@ export const ContextProvider = (props) => {
     ).matches;
     return systemPreference ? "dark" : "light";
   };
+
   const [mode, setMode] = useState({
     modetheme: getInitialMode(),
-    lcolor: "#33da65",
-    dcolor: "#33da65",
+    lcolor: "#1ac472",
+    dcolor: "#1ac4a2",
     ltext: "#0c0c0d",
     dtext: "#ebebf0",
   });
@@ -35,11 +43,13 @@ export const ContextProvider = (props) => {
     localStorage.setItem("mode", mode.modetheme);
   }, [mode.modetheme]);
 
-  //socket io
-  //   const socket = useRef();
-  //   useEffect(()=>{
-  //     socket.current = io('http://localhost:3000')
-  //   },[])
+  // const socket = useMemo(() => io('http://localhost:9000'), []);
+
+  // useEffect(() => {
+  //   return () => {
+  //     socket.disconnect(); // Cleanup socket connection on unmount
+  //   };
+  // }, [socket]);
 
   return (
     <ThemeContext.Provider
@@ -48,6 +58,7 @@ export const ContextProvider = (props) => {
         setMode,
         user,
         setuser,
+        // socket,
       }}
     >
       {props.children}

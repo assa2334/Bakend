@@ -37,15 +37,11 @@ export default function SignUp() {
       setuser((prevuser)=>({
         ...prevuser,
         Name:respone.data.data.Name,
-        FullName:respone.data.data.FullName,
         Email:respone.data.data.Email,
-        Password:respone.data.data.Password,
         img:respone.data.data.img ||' ',
-        token:respone.data.token ,
+        Token:respone.data.token ,
+        id:respone.data.data._id,
     }))
-    localStorage.setItem("Name", respone.data.data.Name);
-    localStorage.setItem("Email", respone.data.data.Email);
-    localStorage.setItem("token", respone.data.token);
     
         setOpen({ value: true, text: respone.data.message, type: "success" });
 
