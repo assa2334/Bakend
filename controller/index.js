@@ -1,0 +1,371 @@
+
+const UserModel = require('../model/User');
+const bcrypt = require('bcrypt');
+require('dotenv').config();
+const jwt = require('jsonwebtoken');
+const conversation = require('../model/conversation');
+const messageSchema = require('../model/Message');
+
+const Userctrl = {};
+
+
+
+// create acount
+
+Userctrl.addUser = async (req, res) => {
+    console.log('*********** Add User ***********');
+    const { Name, FullName, Email, Password } = req.body;
+    if (req.body && Name && FullName && Email && Password) {
+        try {
+            const user = await UserModel.findOne({ Email })
+            if (user) {
+                console.log('acount 1');
+                res.status(200).send('Your acount already correct Please Log in')
+            } else {
+                const salt = await bcrypt.genSalt(10);
+                const hashedPassword = await bcrypt.hash(Password, salt);
+                let user = new UserModel({
+                    Name,
+                    FullName,
+                    Email,
+                    Password: hashedPassword,
+                    About: 'Hey there! I am using WhatsApp.',
+                    img:req.body.img || " ",
+                    Status: '',
+                });
+                let create = await user.save();
+
+                if (create) {
+                    let token = jwt.sign({ Email }, `${process.env.TEXTPASSWORD}`);
+                    res.status(200).json({
+                        message: 'Your acount create',
+                        data: create,
+                        token
+                    })
+
+                } else {
+                    res.status(500).send('An error occurred, please try again');
+                    console.log('data not sotre 4');
+                }
+            }
+
+        } catch (error) {
+            res.status(300).send('An error occurred, please try again')
+        }
+    } else {
+        res.status(400).send( 'Please send Complete Parameter')
+    }
+}
+
+
+// login user
+Userctrl.loginUser = async (req, res) => {
+    console.log('*********** Login User ***********');
+    const { Email, Password } = req.body;
+
+    if (req.body && Email && Password) {
+        try {
+            const user = await UserModel.findOne({ Email })
+            if (!user) {
+                res.status(200).send('Please Create acount1')
+            }
+            else {
+                let password = bcrypt.compareSync(Password, user.Password);
+                if ( req.body.email_verified === true || password === true) {
+                    let token = jwt.sign({ Email }, `${process.env.TEXTPASSWORD}`);
+                    res.status(200).json({
+                        message: 'Welcom Back',
+                        data: user,
+                        token
+                    })
+                } else {
+                    res.status(200).send('Please Create acount2')
+                }
+            }
+        } catch (error) {
+            console.log('Some error in user Find 5');
+            res.status(300).send(error)
+        }
+    } else {
+        res.status(200).send('Please send Complete Parameter')
+        console.log('body not correct 6');
+    }
+}
+
+// change name 
+
+Userctrl.Namechange = async (req, res) => {
+    console.log('*********** Change Name ***********');
+    const { Name } = req.body;
+    const user = req.user;
+    if (req.body && Name ) {
+        try {
+                    user.Name = Name;
+                    let check = await user.save();
+                    if (check) {
+                        res.status(200).json({
+                            message: 'Name Change',
+                        })
+                    } else {
+                        res.status(300).send('Name not change sorry!')
+                    }
+
+        } catch (error) {
+            console.log('Some error in user Change name 5');
+            res.status(300).send({
+                erro: error,
+            })
+        }
+    } else {
+        res.status(400).send({
+            error: 'Please send Complete Parameter'
+        })
+    }
+}
+
+// change about 
+Userctrl.Aboutchange = async (req, res) => {
+    console.log('*********** Change About ***********');
+    const { About } = req.body;
+    const user = req.user;
+    if (req.body && About) {
+        try {
+                    user.About = About;
+                    let check = await user.save();
+                    if (check) {
+                        res.status(200).json({
+                            message: 'Name About',
+                            data:user,
+                        })
+                    } else {
+                        res.status(300).send('About not change sorry!')
+                    }
+
+        } catch (error) {
+            console.log('Some error in user Change About 5');
+            res.status(300).send({
+                erro: error,
+            })
+        }
+    } else {
+        res.status(400).send({
+            error: 'Please send Complete Parameter'
+        })
+    }
+}
+
+// ProfileImage
+Userctrl.ProfileImage = async (req, res) => {
+    console.log('*********** Profile Image ***********');
+    const user = req.user;
+    if (req.file) {
+        try {
+                    user.img = req.file.path;
+                    let check = await user.save();
+                    if (check) {
+                        res.status(200).json({
+                            message: 'File Upload',
+                        })
+                    } else {
+                        res.status(300).send('File not Upload!')
+                    }
+
+        } catch (error) {
+            console.log('Some error in file save 5');
+            res.status(300).send({
+                erro: error,
+            })
+        }
+    } else {
+        res.status(400).send({
+            error: 'Please send Complete Parameter'
+        })
+    }
+}
+
+//change Password
+Userctrl.changePassword = async (req, res) => {
+    const { currentPassword, newPassword } = req.body;
+    const user = req.user;
+
+    if (!currentPassword && !newPassword) {
+        return res.status(400).json({ error: 'Please provide both current and new passwords.' });
+    }
+
+   try {
+    const match = await bcrypt.compare(currentPassword, user.Password);
+    if (!match) {
+        return res.status(400).json({ error: 'Current password is incorrect.' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    user.Password = hashedPassword;
+    let value =  await user.save();
+    if (value) {
+        res.send({
+            message:'Password change'
+        })
+    }else{
+        res.send('Password not change')
+    }
+
+   } catch (error) {
+    res.send({error})
+    
+   }
+
+    res.status(200).json({ message: 'Password changed successfully.' });
+};
+// create conversation
+Userctrl.conversation= async (req,res)=>{
+    console.log('********* conversation**********');
+    let {senderid,receiverid}= req.body;
+    if (!req.body && !senderid && !receiverid) {
+      res.status(401).send('Please sned complete Parameter ');  
+    }
+    try {
+        let user = await conversation.findOne({conversation :{$all:[senderid, receiverid]}}) 
+        if (user) {
+            res.send(user);
+        }else{
+            let user =  new conversation({
+                conversation:[senderid,receiverid],
+                message:'',  
+            })
+            let save = await user.save()
+            if (save) {
+                res.status(200).send({
+                    message:'conversation id create',
+                    data:user,
+                });
+            } else {
+                res.status(401).send('some error this code');  
+            }
+        }
+    } catch (error) {
+        res.status(300).send('Some error your code');
+        console.log('create conversation function crach');
+        
+    }
+}
+// send message
+Userctrl.sendmessage = async (req,res)=>{
+    let {conversation,sender,recipient,text}= req.body;
+    if (!conversation && !sender && !recipient && !text) {
+        res.send('Please send complete Parameter');
+    }else{
+        try {
+            let message = new messageSchema({
+                conversation,
+                sender,
+                recipient,
+                text,
+            })
+            let check = await message.save();
+            if (check) {
+                res.status(200).send({
+                    messsage:'save',
+                    data:message,
+                })
+            }else{
+                res.status(401).send('some error');
+            }
+        } catch (error) {
+            res.status(300).send({
+                error:error,
+            });
+            console.log('create conversation function crash');
+        }
+    }
+}
+//fetch message
+Userctrl.findmessage = async(req,res)=>{
+    let {conversation}= req.body;
+    if (!req.body && !conversation) {
+        res.send('Please send complete Parameter');
+    }else{
+        try {
+                let message = await messageSchema.find({ conversation });
+                if (message) {
+                    res.send({
+                        data:message
+                    })
+                }else{
+                    res.send('some error')
+                }
+            
+        } catch (error) {
+            res.status(300).send({
+                error:error,
+            });
+            console.log('create conversation function crash');
+        }
+    }
+   
+}
+
+
+//fetch User
+Userctrl.FindUser = async(req,res)=>{
+    console.log("*****User Find ********");
+    
+        try {
+                let UserFind = await UserModel.find();
+                if (UserFind) {
+                   let object = UserFind.filter((value)=>{
+                    if (value.Name === req.user.Name) {
+                        value.Name = `${req.user.Name}(You)`
+                    return value
+                }
+                return value;
+                  })
+                    res.send({
+                        data:object,
+                    })
+                }else{
+                    res.send('some error')
+                }
+            
+        } catch (error) {
+            res.status(300).send({
+                error:error,
+            });
+            console.log('create conversation function crash');
+        }
+}
+Userctrl.UploadFile = async (req, res) => {
+    console.log("************ Upload File ************************* ");
+    if (!req.body && !req.file) {
+        console.log(req.body,'hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhdj');
+        return res.status(200).send('Please send complete parameters');   
+    }
+    try {
+        // Save the message to the database with the uploaded file URL
+        let message = new messageSchema({
+            conversation:req.body.conversation,
+            sender:req.body.sender,
+            recipient:req.body.recipient,
+            messageType: req.body.Type,
+            mediaUrl:`http://localhost:9000/file/${req.file.filename}` 
+        });
+
+        let check = await message.save();
+        if (check) {
+            res.status(200).send({
+                message: 'Message saved successfully',
+                data: message,
+            });
+        } else {
+            res.status(401).send('Some error occurred');
+        }
+    } catch (error) {
+        res.status(200).send(error);
+        console.log('Create conversation function crashed', error);
+    }
+}
+
+
+
+module.exports = Userctrl;
