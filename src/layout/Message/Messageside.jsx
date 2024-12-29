@@ -67,6 +67,10 @@ export default function MesageSide({ user, id, message }) {
               {msg.messageType === "text" && (
                 <Typography variant="body2">{msg.text}</Typography>
               )}
+              {msg.messageType === "audio" && (
+              <audio src={msg.mediaUrl} controls />
+               
+              )}
               {msg.messageType === "image" && (
                 <Box
                   component="img"

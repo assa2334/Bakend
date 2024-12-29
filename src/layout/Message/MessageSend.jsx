@@ -29,7 +29,6 @@ export default function MessageSend({id,user}) {
 
     const [audioBlob, setAudioBlob] = useState(null);
     const [isRecording, setIsRecording] = useState(false);
-    const [audioUrl, setAudioUrl] = useState('');
   
     const handleStartRecording = async () => {
     try {
@@ -45,16 +44,39 @@ export default function MessageSend({id,user}) {
       mediaRecorder.onstop = () => {
         const audioBlob = new Blob(chunks, { type: 'audio/wav' });
         setAudioBlob(audioBlob);
-        setAudioUrl(URL.createObjectURL(audioBlob)); // Create a URL to play the audio
       };
   
       mediaRecorder.start();
       setIsRecording(true);
   
       // Stop recording after 10 seconds (you can modify this as needed)
-      setTimeout(() => {
+      setTimeout(async () => {
         mediaRecorder.stop();
+
         setIsRecording(false);
+        alert('Recording stopped!'); 
+        var Type ="audio";
+    
+          let obj ={
+            conversation:id,
+            recipient:user._id,
+            file:audioBlob,
+            Type,
+        }
+        console.log(obj);
+        try {
+          
+          let response = await uploadFile(obj);
+          console.log(response, "Message sent successfully");
+         if(response.status === 200){
+          alert('Audio sent successfully!');
+          setAudioBlob(null); 
+         }
+        } catch (error) {
+          console.log("Some error occurred while sending the message");
+          setAudioBlob(null); 
+        } 
+
       }, 10000); // 10 seconds
     } catch (error) {
       console.error('Permission denied:', error);
@@ -62,8 +84,7 @@ export default function MessageSend({id,user}) {
     }
     };
   
-
-
+    
 
 
 
@@ -140,7 +161,7 @@ export default function MessageSend({id,user}) {
     }
 
     return(
-       
+       <>
               <Box
                 sx={{
                   display: "flex",
@@ -215,6 +236,6 @@ export default function MessageSend({id,user}) {
                   <SendIcon onClick={sendmessage} />
                 </IconButton>
               </Box>
-           
+      </>     
     );
 }

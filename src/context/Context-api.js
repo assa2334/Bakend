@@ -1,26 +1,10 @@
-import { createContext, useEffect, useState, useMemo } from "react";
+import { createContext, useEffect, useState } from "react";
 // import { io } from "socket.io-client";
 
 export const ThemeContext = createContext();
 
 export const ContextProvider = (props) => {
-  const storedUser = useMemo(() => {
-    return JSON.parse(localStorage.getItem("user"));
-  }, []);
-
-  const [user, setuser] = useState(
-    storedUser || {
-      Name: "",
-      FullName: "",
-      Email: "",
-      Token: "",
-      id: "",
-    }
-  );
-
-  useEffect(() => {
-    localStorage.setItem("user", JSON.stringify(user));
-  }, [user]);
+ 
 
   const getInitialMode = () => {
     const savedMode = localStorage.getItem("mode");
@@ -56,8 +40,6 @@ export const ContextProvider = (props) => {
       value={{
         mode,
         setMode,
-        user,
-        setuser,
         // socket,
       }}
     >

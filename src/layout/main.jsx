@@ -14,6 +14,9 @@ import Call from "./Call";
 import Status from "./Status";
 import { useState } from "react";
 
+// React Router
+import { useNavigate } from "react-router-dom"; 
+
 // Reusable Sidebar Component
 const Sidebar = ({ topIcons, bottomIcons }) => {
   return (
@@ -88,6 +91,12 @@ const Sidebar = ({ topIcons, bottomIcons }) => {
 
 // Main Component
 export default function Main() {
+
+  const nagivate = useNavigate();
+  if (!localStorage.getItem("user")) {
+    nagivate("/singup");
+  }
+
   // const theme = useTheme();
   const [page, setpage] = useState({
     value: "Message",

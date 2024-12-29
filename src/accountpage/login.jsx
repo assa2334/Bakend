@@ -13,11 +13,17 @@ import { Login } from '../Api'
 import { GoogleLogin } from '@react-oauth/google';
 import { jwtDecode } from "jwt-decode";
 
-// context
-import { useContext } from "react";
-import { ThemeContext } from "../context/Context-api";
+
+//react-router
+import { Link, useNavigate } from "react-router-dom";
 
 export default function SignUp() {
+  const nagivate = useNavigate();
+  if (localStorage.getItem("user")) {
+    nagivate("/");
+  }
+
+
   const theme = useTheme();
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [isPending, setPaidding] = useTransition();
@@ -26,7 +32,6 @@ export default function SignUp() {
     text: '',
     type: ''
   });
-  const {setuser}= useContext(ThemeContext);
 
   const { register, handleSubmit, formState: { errors } } = useForm();
   const call = (data)=>{
@@ -34,14 +39,16 @@ export default function SignUp() {
       let respone = await Login(data);
       console.log(respone);
       if (respone.data.message) {
-      setuser((prevuser)=>({
-        ...prevuser,
-        Name:respone.data.data.Name,
-        Email:respone.data.data.Email,
-        img:respone.data.data.img ||' ',
-        Token:respone.data.token ,
-        id:respone.data.data._id,
-    }))
+        const userData = {
+          Name: respone.data.data.Name,
+          Email: respone.data.data.Email,
+          img: respone.data.data.img || " ",
+          Token: respone.data.token,
+          id: respone.data.data._id,
+        };
+  
+        // Save userData object to localStorage
+        localStorage.setItem("user", JSON.stringify(userData));
     
         setOpen({ value: true, text: respone.data.message, type: "success" });
 
@@ -85,7 +92,7 @@ export default function SignUp() {
           Create Account
         </Typography>
 
-        <FormControl >
+        <FormControl  >
           <TextField
             id="email"
             autoComplete="email"
@@ -128,6 +135,7 @@ export default function SignUp() {
             {isPending ? <CircularProgress color="success" /> : "Sign Up"}
           </Button>
           <GoogleLogin
+          fullWidth
             onSuccess={(credentialResponse) => {
               if (credentialResponse.credential) {
                 try {
@@ -157,8 +165,8 @@ export default function SignUp() {
           />
         </FormControl>
         <Typography sx={{ textAlign: "center", mt: 2 }}>
-          Already have an account?{" "}
-          <a href="/material-ui/getting-started/templates/sign-in/">Sign in</a>
+          Already have not any account?{" "}
+         <Link to="/singup" >SignUp</Link> 
         </Typography>
       </Paper>
       <Snackbar open={open.value}  autoHideDuration={6000}  anchorOrigin={{ vertical: "top", horizontal: "center" }} onClose={(event, reason) => {if (reason === 'clickaway') {return;}setOpen(false);}} >
