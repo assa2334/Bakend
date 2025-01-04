@@ -32,7 +32,27 @@ export default function NameSide({ name, data, isPending,onUserClick }) {
             {name}
           </Typography>
         </Paper>
-
+        {name === "Status" ? 
+          <ListItem disablePadding>
+            <ListItemButton
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 2,
+                width: "100%",
+                boxSizing: "border-box", // Ensure padding is included in width
+                marginBottom: 2, // Space between header and list
+                "&:hover": {
+                  bgcolor: "primary.dark",
+                },
+              }}
+              onClick={() => onUserClick({Name:"Status"})}
+            >
+              <Typography variant="body1">Add Status</Typography>
+            </ListItemButton>
+          </ListItem>
+          
+          : ""}
         <Box sx={{ flexGrow: 1, display: "flex", justifyContent: "center", alignItems: "center" }}>
           <Typography variant="body1">No data available</Typography>
         </Box>
@@ -94,6 +114,27 @@ export default function NameSide({ name, data, isPending,onUserClick }) {
           }}
         >
           {/* List Items */}
+          {name === "Status" ? 
+          <ListItem disablePadding>
+            <ListItemButton
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 2,
+                width: "100%",
+                boxSizing: "border-box", // Ensure padding is included in width
+                marginBottom: 2, // Space between header and list
+                "&:hover": {
+                  bgcolor: "primary.dark",
+                },
+              }}
+              onClick={() => onUserClick({Name:"Status"})}
+            >
+              <Typography variant="body1">Add Status</Typography>
+            </ListItemButton>
+          </ListItem>
+          
+          : ""}
           {data.data.map((item,index) => ( 
             <ListItem key={index} disablePadding   >
               <ListItemButton
