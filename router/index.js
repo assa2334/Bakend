@@ -17,6 +17,8 @@ router.post('/Aboutchange',middelware.validateToken,Userctrl.Aboutchange);
 router.post('/ProfileImage',middelware.upload.single('ProfileImage'),Userctrl.Aboutchange);
 // uploadfile 
 router.post('/Uploadfile',middelware.uploadfile.single('file'),Userctrl.UploadFile);
+// upload file
+router.post('/UploadVideo',middelware.validateToken,middelware.uploadfile.single('file'),Userctrl.UploadVideo);
 // chage Password 
 router.post('/changePassword', middelware.validateToken, Userctrl.changePassword);
 //create conversation

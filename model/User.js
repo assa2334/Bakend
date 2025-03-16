@@ -30,6 +30,10 @@ const Schema = mongoose.Schema({
         type: String,
         required: false,
     },
+    date: {
+        type: Date,
+        required: false,
+    },
 });
 
 module.exports = mongoose.model('User', Schema);

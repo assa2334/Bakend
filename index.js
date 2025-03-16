@@ -69,36 +69,51 @@ conn.once('open', () => {
 
 app.get('/file/:filename', async (req, res) => {
     const { filename } = req.params;
-    console.log("***********File name ************",filename);
-    
+    console.log('*********** File name ************', filename);
+  
     try {
-        // Check if the file exists in GridFS
-        const file = await conn.db.collection('uploads.files').findOne({filename});
-
-        if (!file) {
-            return res.status(200).send(`File not found2 ${filename} ${file}`);
-        }
-
-        const mime = require('mime-types');
-        const fileExtension = mime.extension(file.contentType);
-        // Set headers for the response
-        res.set('Content-Type', file.contentType);
-        res.set('Content-Disposition', `attachment; filename="${file.filename}.${fileExtension}"`);
-        
-        // Stream the file to the client
+      // Check if the file exists in GridFS
+      const file = await conn.db.collection('uploads.files').findOne({ filename });
+  
+      if (!file) {
+        return res.status(404).send(`File not found: ${filename}`);
+      }
+  
+      const mime = require('mime-types');
+      const fileExtension = mime.extension(file.contentType) || 'bin';
+      console.log('*********** File Extension ************', fileExtension);
+      console.log('*********** File ************', file);
+  
+      // Set headers for the response
+      res.set('Content-Type', file.contentType);
+  
+      if (file.contentType === 'video/mp4') {
+        // Stream video file to client
         const readStream = gridFSBucket.openDownloadStreamByName(filename);
-        readStream.pipe(res);
-
         readStream.on('error', (err) => {
-            console.error('Stream error:', err);
-            res.status(500).send('Stream error');
+          console.error('Stream error:', err);
+          res.status(500).send('Stream error');
         });
+  
+        // Allow video streaming by the client
+        res.set('Accept-Ranges', 'bytes');
+        readStream.pipe(res);
+      } else {
+        // Download other file types as an attachment
+        res.set('Content-Disposition', `attachment; filename="${file.filename}.${fileExtension}"`);
+        const readStream = gridFSBucket.openDownloadStreamByName(filename);
+        readStream.on('error', (err) => {
+          console.error('Stream error:', err);
+          res.status(500).send('Stream error');
+        });
+        readStream.pipe(res);
+      }
     } catch (err) {
-        console.error('Error fetching file:', err);
-        res.status(500).send('Error fetching file');
+      console.error('Error fetching file:', err);
+      res.status(500).send('Error fetching file');
     }
-});
-
+  });
+  
 
 
 
