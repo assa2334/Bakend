@@ -67,6 +67,7 @@ const storagefile = new GridFsStorage({
     url: `mongodb+srv://${process.env.NAME}:${process.env.PASSWORD}@cluster0.mxi10.mongodb.net/?retryWrites=true&w=majority&appName=${process.env.PROJECT}`,
     file: (req, file) => {
         let name = `${file.fieldname}-${Date.now()}-${Math.round(Math.random() * 1E9)}`;
+       console.log('file upoaded');
         req.namefile = name; // Save the name of the file to the request
         console.log('File being processed:', file); // Log the file object
         return {

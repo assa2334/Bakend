@@ -18,7 +18,7 @@ const LocationSchema = new mongoose.Schema({
     organization: { type: String }
   });
 
-const Schema = mongoose.Schema({
+const UserSchema = new mongoose.Schema({
     Name: {
         type: String,
         required: true,
@@ -48,6 +48,7 @@ const Schema = mongoose.Schema({
         type: String,
         required: false,
     },
+
     otp:{
         type:Number,
         required:true,
@@ -61,7 +62,10 @@ const Schema = mongoose.Schema({
         required:false,
     },
 
+    date: {
+        type: Date,
+        required: false,
+    },
     location: LocationSchema, 
-
 }, { timestamps: true });
-module.exports = mongoose.model('User', Schema);
+module.exports = mongoose.model('User', UserSchema );

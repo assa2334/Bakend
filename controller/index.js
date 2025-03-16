@@ -5,8 +5,10 @@ require('dotenv').config();
 const jwt = require('jsonwebtoken');
 const conversation = require('../model/conversation');
 const messageSchema = require('../model/Message');
+
 const nodemailer = require("nodemailer");
 const CryptoJS = require("crypto-js");
+
 const Userctrl = {};
 
 const funct = require('../function/index');
@@ -186,7 +188,7 @@ Userctrl.Namechange = async (req, res) => {
     if (req.body && Name ) {
         try {
                     user.Name = Name;
-                    let check = await user.save();
+                    let check = await UserModel.save();
                     if (check) {
                         res.status(200).json({
                             message: 'Name Change',
@@ -450,6 +452,42 @@ Userctrl.UploadFile = async (req, res) => {
         console.log('Create conversation function crashed', error);
     }
 }
+// Upload Video
+Userctrl.UploadVideo = async (req, res) => {
+    console.log("************ Upload Video *************************");
+
+    // Check if request contains necessary data
+    if (!req.body || !req.file) {
+        console.log("Incomplete parameters:", req.body);
+        return res.status(400).send('Please send complete parameters');
+    }
+
+    try {
+        const userid = req.user; // Assuming req.user contains the authenticated user's ID
+        const statusUrl = `http://localhost:9000/file/${req.file.filename}`;
+
+      
+
+        // Update the user's status and status expiry
+        const updateResult = await UserModel.findByIdAndUpdate( userid,{ Status: statusUrl,date: new Date(),}, { new: true });
+
+        if (updateResult) {
+            console.log({'message':"Status updated successfully:"});
+            res.status(200).send({
+                message: 'Status updated successfully',
+                data: updateResult,
+            });
+        } else {
+            res.status(404).send('User not found');
+        }
+    } catch (error) {
+        console.error("Error in UploadVideo:", error);
+        res.status(500).send({
+            message: 'Internal server error',
+            error: error.message,
+        });
+    }
+};
 
 
 
