@@ -302,3 +302,34 @@ console.log(formData.get('file'),"hello subhan")
   }
 }
 
+export async function uploadVideo(props) {
+  const apiUrl = `${url}/UploadVideo`;
+  console.log('call api',props);
+  
+  // Ensure all required fields are provided
+  if (!props) {
+      console.error('File is required for upload');
+      return { error: 'File is required' };
+  }
+
+  let formData = new FormData();
+  formData.append('file', props);
+
+  const storedUser = localStorage.getItem('user'); // Replace with your storage mechanism
+  const headers = {
+      Accept: '*/*',
+      'Content-Type': 'multipart/form-data',
+      token: `${JSON.parse(storedUser).Token}`,
+  };
+
+  try {
+      console.log('Uploading video...');
+      const response = await axios.post(apiUrl, formData, { headers });
+      console.log('Video uploaded successfully:', response);
+      return response; // Return the response from the server
+  } catch (error) {
+    console.log(error, "response.data");
+      console.error('Error uploading video:', error.response?.status, error.response?.data);
+      return { error: error.response?.data || 'Upload failed' };
+  }
+}

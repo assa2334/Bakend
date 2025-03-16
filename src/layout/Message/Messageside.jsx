@@ -2,14 +2,21 @@
 //mui Component
 import {
   Box,
+  Dialog,
   Typography,
 
 } from "@mui/material";
-
+import React from "react";
 import Top from "../../example/Top";
 import MessageSend from "./MessageSend";
+// import { set } from "react-hook-form";
+// import Display from "../../example/Display";
 export default function MesageSide({ user, id, message }) {
-  console.log(message,id,user, 'djsfffffffffffffffffffffffffffffffffffffffffffffffffffffff');
+  const [open, setOpen] = React.useState(false);
+  const [imgurl, setimgurl] = React.useState(false);
+
+
+  console.log(message, 'djsfffffffffffffffffffffffffffffffffffffffffffffffffffffff');
 
   function Middle() {
     // Parse user only once
@@ -83,6 +90,7 @@ export default function MesageSide({ user, id, message }) {
                     maxHeight: "200px",
                     borderRadius: 2,
                   }}
+                  onClick={() => {setOpen(true); setimgurl(msg.mediaUrl)}}
                 />
               )}
               {msg.messageType === "file" && (
@@ -161,6 +169,9 @@ export default function MesageSide({ user, id, message }) {
         <Middle />
         <MessageSend user={user} id={id} />
       </Box>
+      <Dialog open={open} onClose={() => setOpen(false)}   fullScreen>
+        <img src={imgurl} alt="message" style={{ width: "100%" }} />
+      </Dialog>
     </>
   );
 }
