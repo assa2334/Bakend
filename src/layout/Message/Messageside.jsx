@@ -9,7 +9,7 @@ import {
 import Top from "../../example/Top";
 import MessageSend from "./MessageSend";
 export default function MesageSide({ user, id, message }) {
-  console.log(message, 'djsfffffffffffffffffffffffffffffffffffffffffffffffffffffff');
+  console.log(message,id,user, 'djsfffffffffffffffffffffffffffffffffffffffffffffffffffffff');
 
   function Middle() {
     // Parse user only once

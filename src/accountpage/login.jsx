@@ -9,7 +9,7 @@ import Alert from '@mui/material/Alert';
 import Snackbar from '@mui/material/Snackbar';
 //form vild
 import { useForm } from "react-hook-form";
-import { Login } from '../Api'
+import { Login } from '../api/index'
 import { GoogleLogin } from '@react-oauth/google';
 import { jwtDecode } from "jwt-decode";
 
@@ -69,7 +69,7 @@ export default function SignUp() {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        background: `radial-gradient(circle, #00D4FF 1%, ${theme.palette.text.dark} 95%)`,
+        background: `radial-gradient(circle,rgb(25, 87, 42) 10%, ${theme.palette.text.dark} 95%)`,
       }}
     >
       <Paper

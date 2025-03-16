@@ -2,16 +2,22 @@ import { Box, Typography } from "@mui/material";
 import NameSide from "./NameSide";  // Corrected typo in `Naneside`
 import MessageSide from "./Messageside";
 // api
-import { UserList,Conversation,messagefind } from "../../Api";
+import { UserList,Conversation,messagefind } from "../../api/index";
 import { useState, useEffect } from "react";
 
-
+import {  useNavigate } from "react-router-dom";
 export default function Message() {
   const [state, setState] = useState(null);
   const [loading, setLoading] = useState(false);  // Using state for loading instead of useTransition
   const [selectedUser, setSelectedUser] = useState(); 
   const [Conversationid,setConversationid]= useState('');
   const [data,setdata]= useState();
+  const user = JSON.parse(localStorage.getItem('user'));
+  const nagivate = useNavigate();
+  if (!user || user.isverify === false) {  
+    nagivate("/singup");
+  }
+  
   // API call inside useEffect
   useEffect(() => {
     const call = async () => {
@@ -40,12 +46,12 @@ export default function Message() {
   
     
       setConversationid(conversationId);
-  
+      console.log(conversationId,"hello subhan");
+
       // Fetch messages directly using the conversationId
       let responemessage = await messagefind(conversationId);
       setdata(responemessage);
-  
-      console.log("Selected User:", user);
+      
       setSelectedUser(user); // Update the selected user last
     } catch (error) {
       console.error("Error in handleUserClick:", error);

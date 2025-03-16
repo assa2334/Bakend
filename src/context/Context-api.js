@@ -17,10 +17,10 @@ export const ContextProvider = (props) => {
 
   const [mode, setMode] = useState({
     modetheme: getInitialMode(),
-    lcolor: "#1ac472",
-    dcolor: "#1ac4a2",
-    ltext: "#0c0c0d",
-    dtext: "#ebebf0",
+    lcolor: "#273ea8",
+    dcolor: "#27a849",
+    ltext: "#27a849",
+    dtext: "#ffffff",
   });
 
   useEffect(() => {

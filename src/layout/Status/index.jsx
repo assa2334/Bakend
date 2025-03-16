@@ -1,7 +1,8 @@
 import { Box } from "@mui/material";
 import Naneside from "../Message/NameSide";
 import VideoSide from "./VideoSide";
-import {UserList ,Conversation} from '../../Api'
+import {UserList ,Conversation} from '../../api/index'
+import {  useNavigate } from "react-router-dom";
 //react
 import { useState, useEffect } from "react";
 export default function Status(params) {
@@ -10,7 +11,11 @@ export default function Status(params) {
   const [selectedUser, setSelectedUser] = useState(); 
   const [Conversationid,setConversationid]= useState('');
   const [data,setdata]= useState();
-
+  const user = JSON.parse(localStorage.getItem('user'));
+  const nagivate = useNavigate();
+  if (!user || user.isverify === false) {  
+    nagivate("/singup");
+  }
     // API call inside useEffect
     useEffect(() => {
       const call = async () => {

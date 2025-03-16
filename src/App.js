@@ -9,16 +9,20 @@ import { ThemeContext } from "./context/Context-api";
 import SingUp from "./accountpage/singup";
 import Login from "./accountpage/login";
 import Mian from "./layout/main";
+import Admin from "./layout/admin/index";
 //react-oauth imports
 import { GoogleOAuthProvider } from '@react-oauth/google';
 //react-router imports
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 
 function App() {
+
+
   const { mode } = useContext(ThemeContext); 
   const theme = getTheme(mode); 
 
   console.log(mode.modetheme); 
+
 
   // Correctly define the routes as an array
   const router = createBrowserRouter([
@@ -33,6 +37,10 @@ function App() {
     {
       path: "/login",
       element: <Login/>,
+    },
+    {
+      path: "/admin",
+      element: <Admin/>,
     },
   ]);
 

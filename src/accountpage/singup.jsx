@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useRef, useEffect } from "react";
 import { useTransition } from "react";
 //umi
 import { Box, Paper, TextField, Typography, Button, InputAdornment, FormControl, IconButton } from "@mui/material";
@@ -8,8 +8,8 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
 import Snackbar from '@mui/material/Snackbar';
 //form vild
-import { useForm } from "react-hook-form";
-import { signUp } from '../Api'
+import {  useForm } from "react-hook-form";
+import { signUp,emailverify } from '../api/index'
 import { GoogleLogin } from '@react-oauth/google';
 import { jwtDecode } from "jwt-decode";
 
@@ -17,22 +17,32 @@ import { jwtDecode } from "jwt-decode";
 
 //react-router
 import { Link, useNavigate } from "react-router-dom";
+import { use } from "react";
 
 export default function SignUp() {
+
+  const user = JSON.parse(localStorage.getItem('user'));
   const nagivate = useNavigate();
-  if (localStorage.getItem("user")) {
-    nagivate("/");
+  if (user) {
+    if (user.isverify === true) {
+      nagivate("/");
+    }  
   }
 
 
   const theme = useTheme();
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [isPending, setPaidding] = useTransition();
+  const [isPendingverify,setPaiddingverify] = useTransition();
+  const [isverify, setisverify] = useState(true);
   const [open, setOpen] = useState({
     value: false,
     text: '',
     type: ''
   });
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const inputRefs = useRef([]);
+
 
 
   const { register, handleSubmit, formState: { errors } } = useForm();
@@ -41,17 +51,18 @@ export default function SignUp() {
       let respone = await signUp(data);
       console.log(respone);
       if (respone.data.message) {
+        setisverify(respone.data.isverify)
         const userData = {
           Name: respone.data.data.Name,
           Email: respone.data.data.Email,
           img: respone.data.data.img || " ",
           Token: respone.data.token,
           id: respone.data.data._id,
+          isverify : respone.data.isverify
         };
-  
         // Save userData object to localStorage
         localStorage.setItem("user", JSON.stringify(userData));
-        setOpen({ value: true, text: respone.data.message, type: "success" });
+        // setOpen({ value: true, text: respone.data.message, type: "success" });
       } else {
         setOpen({ value: true, text: respone.data, type: "warning" });
       }
@@ -61,6 +72,55 @@ export default function SignUp() {
   const onSubmit = (data) => {
     call(data)
   };
+  const handleKeyDown = (index, e) => {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      inputRefs.current[index - 1].focus();
+    }
+  };
+
+  const handleVerify = () => {
+    const otpCode = otp.join("");
+    if (otpCode.length === 6) {
+      setPaiddingverify(async () => {
+        let respone = await emailverify(otpCode);
+        console.log(respone);
+
+        if (respone.data.message =="Email Verify" ) {
+          setisverify(respone.data.data.isverify)
+          let localStoragedata = JSON.parse(localStorage.getItem("user"));
+          const userData = {
+            Name: localStoragedata.Name,
+            Email: localStoragedata.Email,
+            img: localStoragedata.img || " ",
+            Token: localStoragedata.Token,
+            id: localStoragedata.id,
+            isverify : respone.data.data.isverify
+          };
+          // Save userData object to localStorage
+          localStorage.setItem("user", JSON.stringify(userData));
+          setOpen({ value: true, text: respone.data.message, type: "success" });
+          // nagivate("/");
+        } else {
+          setOpen({ value: true, text: respone.data.message , type: "warning" });
+        }
+      })
+      console.log("OTP Verified:", otpCode);
+    } else {
+      console.log("Please enter a valid OTP");
+    }
+  };
+  const handleChange = (index, value) => {
+    if (/^[0-9]?$/.test(value)) {
+      const newOtp = [...otp];
+      newOtp[index] = value;
+      setOtp(newOtp);
+
+      // Move to next input if value is entered
+      if (value && index < 5) {
+        inputRefs.current[index + 1].focus();
+      }
+    }
+  };
   return (
     <Box
       sx={{
@@ -69,10 +129,11 @@ export default function SignUp() {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        background: `radial-gradient(circle, #00D4FF 1%, ${theme.palette.text.dark} 95%)`,
+        background: `radial-gradient(circle,rgb(25, 87, 42) 10%, ${theme.palette.text.dark} 95%)`,
       }}
     >
-      <Paper
+      {isverify && (
+        <Paper
         component="form"
         elevation={5}
         sx={{
@@ -188,6 +249,78 @@ export default function SignUp() {
           <Link to="/login">Login</Link>
         </Typography>
       </Paper>
+      )}
+ 
+      {!isverify  && (
+         <Paper
+      elevation={5}
+      sx={{
+        padding: 4,
+        width: "400px",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        textAlign: "center",
+        backdropFilter: "blur(20px)",
+        backgroundColor: "rgba(255, 255, 255, 0.2)",
+        borderRadius: "16px",
+        border: "1px solid rgba(255, 255, 255, 0.3)",
+        boxShadow: "0px 8px 20px rgba(0, 0, 0, 0.1)",
+      }}
+    >
+      <Typography variant="h4" sx={{ mb: 2, fontWeight: "bold", color: "#333" }}>
+        Verify Email
+      </Typography>
+      <Typography variant="body1" sx={{ mb: 3, color: "#555" }}>
+        Enter the OTP sent to your email
+      </Typography>
+
+      <Box sx={{ display: "flex", gap: 1 }}>
+        {otp.map((digit, index) => (
+          <TextField
+            key={index}
+            inputRef={(el) => (inputRefs.current[index] = el)}
+            value={digit}
+            onChange={(e) => handleChange(index, e.target.value)}
+            onKeyDown={(e) => handleKeyDown(index, e)}
+            variant="outlined"
+            sx={{
+              width: "40px",
+              height: "50px",
+              textAlign: "center",
+              fontSize: "20px",
+              "& input": {
+                textAlign: "center",
+                fontSize: "20px",
+                padding: "10px",
+              },
+            }}
+          />
+        ))}
+      </Box>
+
+      <Button
+        variant="contained"
+        color="primary"
+        sx={{
+          mt: 3,
+          width: "100%",
+          padding: "10px",
+          fontSize: "16px",
+          fontWeight: "bold",
+          borderRadius: "8px",
+          transition: "0.3s",
+          "&:hover": { backgroundColor: "#0077ff" },
+        }}
+        onClick={handleVerify}
+      >
+        {/* Verify OTP */}
+        {isPendingverify ? <CircularProgress color="success" /> : "Verify OTP"}
+      </Button>
+    </Paper>
+      )}  
+  
+
       <Snackbar open={open.value}  autoHideDuration={6000}  anchorOrigin={{ vertical: "top", horizontal: "center" }} onClose={(event, reason) => {if (reason === 'clickaway') {return;}setOpen(false);}} >
         <Alert
           severity={open.type}

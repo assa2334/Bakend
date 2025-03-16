@@ -16,12 +16,13 @@ import AttachFileIcon from "@mui/icons-material/AttachFile";
 import SendIcon from "@mui/icons-material/Send";
 import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
 import KeyboardVoiceIcon from "@mui/icons-material/KeyboardVoice";
-import { messageSend,uploadFile } from "../../Api";
+import { messageSend,uploadFile } from "../../api/index";
 
 
 
 export default function MessageSend({id,user}) {
- 
+    console.log(id,user, 'djsfffffffffffffffffffffffffffffffffffffffffffffffffffffff');
+    
     const [anchorEl, setAnchorEl] = useState(null); // For emoji picker popover
     const [message, setMessage] = useState(""); // Message text state
     const theme = useTheme(); // Get MUI theme
@@ -141,12 +142,15 @@ export default function MessageSend({id,user}) {
       alert(`${file.name} is not a supported file type.`);
     }
   }
+  
         let obj ={
           conversation:id,
           recipient:user._id,
           file,
           Type,
       }
+      console.log(obj ,"hello subhan");
+      
       console.log(obj);
       try {
         

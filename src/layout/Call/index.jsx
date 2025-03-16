@@ -1,7 +1,14 @@
 import { Box } from "@mui/material";
 import Naneside from "../Message/NameSide";
 import CallSide from "./CallSide";
+import {  useNavigate } from "react-router-dom";
 export default function Call(params) {
+  
+  const user = JSON.parse(localStorage.getItem('user'));
+  const nagivate = useNavigate();
+  if (!user || user.isverify === false) {  
+    nagivate("/singup");
+  }
   return (
     <>
       <Box
