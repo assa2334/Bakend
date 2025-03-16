@@ -1,11 +1,12 @@
+import { Upload } from "@mui/icons-material";
 import { Box, List, ListItem, ListItemButton, Paper, Typography, Avatar, CircularProgress } from "@mui/material";
 
-export default function NameSide({ name, data, isPending,onUserClick }) {
+export default function NameSide({ name, data, isPending,onUserClick,UploadStatus }) {
   
 
 
   // Handle cases where data is not yet available or empty
-  if (!data || !data.data || data.data.length === 0) {
+  if (!data || !data || data.length === 0) {
     return (
       <Box
         sx={{
@@ -41,14 +42,16 @@ export default function NameSide({ name, data, isPending,onUserClick }) {
                 gap: 2,
                 width: "100%",
                 boxSizing: "border-box", // Ensure padding is included in width
+                bgcolor: "primary.dark",
                 marginBottom: 2, // Space between header and list
                 "&:hover": {
-                  bgcolor: "primary.dark",
+                  bgcolor: "text.light",
                 },
               }}
-              onClick={() => onUserClick({Name:"Status"})}
+              onClick={UploadStatus}
             >
-              <Typography variant="body1">Add Status</Typography>
+              <Avatar alt="Add Status" src="https://img.icons8.com/ios/452/add.png" />
+              <Typography color="text.dark" variant="body1">Add Status</Typography>
             </ListItemButton>
           </ListItem>
           
@@ -124,18 +127,20 @@ export default function NameSide({ name, data, isPending,onUserClick }) {
                 width: "100%",
                 boxSizing: "border-box", // Ensure padding is included in width
                 marginBottom: 2, // Space between header and list
+                bgcolor: "primary.dark",
                 "&:hover": {
-                  bgcolor: "primary.dark",
+                  bgcolor: "text.light",
                 },
               }}
-              onClick={() => onUserClick({Name:"Status"})}
+              onClick={UploadStatus}
             >
-              <Typography variant="body1">Add Status</Typography>
+               <Avatar alt="Add Status" src="https://img.icons8.com/ios/452/add.png" />
+               <Typography color="text.dark" variant="body1">Add Status</Typography>
             </ListItemButton>
           </ListItem>
           
           : ""}
-          {data.data.map((item,index) => ( 
+          {data.map((item,index) => ( 
             <ListItem key={index} disablePadding   >
               <ListItemButton
                 sx={{

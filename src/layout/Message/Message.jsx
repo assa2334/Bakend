@@ -19,7 +19,7 @@ export default function Message() {
       try {
         const response = await UserList();
         if (response.data) {
-          setState(response.data);
+          setState(response.data.data);
         } else {
           console.log('Some error');
         }
