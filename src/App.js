@@ -10,6 +10,8 @@ import SingUp from "./accountpage/singup";
 import Login from "./accountpage/login";
 import Mian from "./layout/main";
 import Admin from "./layout/admin/index";
+import Voice from "./example/call/voice/index"
+import Video from "./example/call/video/index"
 //react-oauth imports
 import { GoogleOAuthProvider } from '@react-oauth/google';
 //react-router imports
@@ -41,6 +43,14 @@ function App() {
     {
       path: "/admin",
       element: <Admin/>,
+    },
+    {
+      path:"/Voice/:sender/:receiver",
+      element: <Voice/>,
+    },
+    {
+      path:"/Video/:sender/:receiver",
+      element: <Video/>,
     },
   ]);
 

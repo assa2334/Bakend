@@ -165,7 +165,7 @@ export default function MesageSide({ user, id, message }) {
           justifyContent: "space-between",
         }}
       >
-        <Top name={user.Name} img={user.img} />
+        <Top name={user.Name} img={user.img} id={user} />
         <Middle />
         <MessageSend user={user} id={id} />
       </Box>

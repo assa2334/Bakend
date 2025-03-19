@@ -11,7 +11,9 @@ import {
 import VideoChatOutlinedIcon from "@mui/icons-material/VideoChatOutlined";
 import CallIcon from "@mui/icons-material/Call";
 
-export default function Top({name,img}) {
+export default function Top({name,img,id}) {
+  console.log("id",id);
+  let callWindow = null;
   return (
     <>
       <Box
@@ -85,6 +87,29 @@ export default function Top({name,img}) {
           >
             <Tooltip title={"Video Call"}>
               <IconButton
+              onClick={() => {
+                if (callWindow && !callWindow.closed) {
+                  callWindow.focus(); // Bring existing window to front
+                  return;
+                }
+                const senderId = JSON.parse(localStorage.getItem('user')).id;
+                const url = `/Video/${senderId}/${id._id}`;
+            
+                // Get screen width & height
+                const screenWidth = window.screen.width;
+                const screenHeight = window.screen.height;
+            
+                // Define the window size
+                const width = 800;
+                const height = 600;
+            
+                // Calculate center position
+                const left = (screenWidth - width) / 2;
+                const top = (screenHeight - height) / 2;
+            
+                // Open window in the center
+                window.open(url, "_blank", `width=${width},height=${height},left=${left},top=${top}`);
+              }}
                 sx={{
                   bgcolor: "action.hover",
                   transition: "transform 0.3s ease",
@@ -99,6 +124,29 @@ export default function Top({name,img}) {
             </Tooltip>
             <Tooltip title={"Call"}>
               <IconButton
+               onClick={() => {
+                if (callWindow && !callWindow.closed) {
+                  callWindow.focus(); // Bring existing window to front
+                  return;
+                }
+                const senderId = JSON.parse(localStorage.getItem('user')).id;
+                const url = `/Voice/${senderId}/${id._id}`;
+            
+                // Get screen width & height
+                const screenWidth = window.screen.width;
+                const screenHeight = window.screen.height;
+            
+                // Define the window size
+                const width = 800;
+                const height = 600;
+            
+                // Calculate center position
+                const left = (screenWidth - width) / 2;
+                const top = (screenHeight - height) / 2;
+            
+                // Open window in the center
+                window.open(url, "_blank", `width=${width},height=${height},left=${left},top=${top}`);
+              }}
                 sx={{
                   bgcolor: "action.hover",
                   transition: "transform 0.3s ease",
