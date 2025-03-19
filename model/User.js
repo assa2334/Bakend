@@ -61,7 +61,15 @@ const UserSchema = new mongoose.Schema({
         type:Date,
         required:false,
     },
-
+    online: { 
+        type: String, 
+        enum: ["active", "deactive"], 
+        default: "active"
+    },
+    lastdata:{
+        type:Date,
+        required:false,
+    },
     date: {
         type: Date,
         required: false,
