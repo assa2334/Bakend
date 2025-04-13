@@ -150,34 +150,36 @@ Userctrl.loginUser = async (req, res) => {
     console.log('*********** Login User ***********');
     const { Email, Password } = req.body;
 
-    if (req.body && Email && Password) {
-        try {
-            const user = await UserModel.findOne({ Email })
-            if (!user) {
-                res.status(200).send('Please Create acount1')
-            }
-            else {
-                let password = bcrypt.compareSync(Password, user.Password);
-                if ( req.body.email_verified === true || password === true) {
-                    let token = jwt.sign({ Email }, `${process.env.TEXTPASSWORD}`);
-                    res.status(200).json({
-                        message: 'Welcom Back',
-                        data: user,
-                        token
-                    })
-                } else {
-                    res.status(200).send('Please Create acount2')
-                }
-            }
-        } catch (error) {
-            console.log('Some error in user Find 5');
-            res.status(300).send(error)
-        }
-    } else {
-        res.status(200).send('Please send Complete Parameter')
-        console.log('body not correct 6');
+    if (!Email || !Password) {
+        return res.status(400).send('Please provide both email and password');
     }
-}
+
+    try {
+        const user = await UserModel.findOne({ Email });
+        if (!user) {
+            return res.status(404).send('Account not found. Please create an account');
+        }
+
+        // Decrypt the stored password
+        const decryptedBytes = CryptoJS.AES.decrypt(user.Password, "your_secret_key");
+        const decryptedPassword = decryptedBytes.toString(CryptoJS.enc.Utf8);
+
+        // Compare passwords
+        if (Password === decryptedPassword || req.body.email_verified === true) {
+            let token = jwt.sign({ Email }, `${process.env.TEXTPASSWORD}`);
+            return res.status(200).json({
+                message: 'Welcome Back',
+                data: user,
+                token
+            });
+        } else {
+            return res.status(401).send('Invalid credentials');
+        }
+    } catch (error) {
+        console.error('Login error:', error);
+        return res.status(500).send('Internal server error');
+    }
+};
 
 // change name 
 

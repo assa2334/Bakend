@@ -1,53 +1,58 @@
-const UserModel = require('../../model/User'); // Import your User model
+// In your user controller (controllerSocket/user.js)
 
-const user = {};
+const UserModel = require('../../model/User');
 
-user.statusChangeOnline = async (userId) => {
-    try {
-        // Find user by ID
-        let findUser = await UserModel.findOne({ _id: userId });
+const user = {
+    statusChangeOnline: async (userId) => {
+        try {
+            const updatedUser = await UserModel.findByIdAndUpdate(
+                userId,
+                {
+                    $set: {
+                        online: "active",
+                        lastActive: new Date()
+                    }
+                },
+                { new: true } // Return the updated document
+            );
 
-        if (!findUser) {
-            console.log(`User with ID ${userId} not found.`);
-            return { success: false, message: "User not found" };
+            if (!updatedUser) {
+                console.log(`User ${userId} not found for online status update`);
+                return { success: false, message: "User not found" };
+            }
+
+            console.log(`User ${userId} status updated to online`);
+            return { success: true, message: "User is now online", user: updatedUser };
+        } catch (error) {
+            console.error("Error updating to online status:", error);
+            return { success: false, message: "Database error" };
         }
+    },
 
-        // Update status
-        findUser.online = "active";
-        findUser.lastdata = new Date();
+    statusChangeOffline: async (userId) => {
+        try {
+            const updatedUser = await UserModel.findByIdAndUpdate(
+                userId,
+                {
+                    $set: {
+                        online: "inactive", // Changed from "deactive" to more standard "inactive"
+                        lastActive: new Date()
+                    }
+                },
+                { new: true }
+            );
 
-        // Save the updated user
-        await findUser.save();
-        console.log(`User ${userId} is now online.`);
+            if (!updatedUser) {
+                console.log(`User ${userId} not found for offline status update`);
+                return { success: false, message: "User not found" };
+            }
 
-        return { success: true, message: "User status updated" };
-    } catch (error) {
-        console.error("Error updating user status:", error);
-        return { success: false, message: "Internal server error" };
-    }
-};
-user.statusChangeOffline = async (userId) => {
-    try {
-        // Find user by ID
-        let findUser = await UserModel.findOne({ _id: userId });
-
-        if (!findUser) {
-            console.log(`User with ID ${userId} not found.`);
-            return { success: false, message: "User not found" };
+            console.log(`User ${userId} status updated to offline`);
+            return { success: true, message: "User is now offline", user: updatedUser };
+        } catch (error) {
+            console.error("Error updating to offline status:", error);
+            return { success: false, message: "Database error" };
         }
-
-        // Update status
-        findUser.online = "deactive";
-        findUser.lastdata = new Date();
-
-        // Save the updated user
-        await findUser.save();
-        console.log(`User ${userId} is now online.`);
-
-        return { success: true, message: "User status updated" };
-    } catch (error) {
-        console.error("Error updating user status:", error);
-        return { success: false, message: "Internal server error" };
     }
 };
 

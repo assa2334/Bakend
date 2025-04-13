@@ -25,8 +25,10 @@ let port = process.env.PORT;
 const server = http.createServer(app);
 const io = new Server(server,{
     cors:{
-        origin:'*',
-        methods:'POST,GET'
+      origin: '*', // ✅ Allow both local & network clients
+      methods: ["GET", "POST"],
+      allowedHeaders: ["Content-Type"],
+      credentials: true
     },
 })
 
@@ -113,7 +115,7 @@ app.get('/file/:filename', async (req, res) => {
 
 
 
-server.listen(port,(error)=>{
+server.listen(port ,"0.0.0.0",(error)=>{
     if (error) {
         console.log('some error this code',error);
     }
