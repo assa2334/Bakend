@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 
-let url = 'http://192.168.0.102:9000/api/v8'
+let url = 'http://localhost:9000/api/v8'
 
 
 

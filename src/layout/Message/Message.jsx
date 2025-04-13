@@ -76,9 +76,10 @@ export default function Message() {
       <Box
       sx={{
         bgcolor: "background.default",
-        width: { xs: "100%", sm: "70%", md: "80%" },
+        width: { xs: "100", sm: "70%", md: "80%" },
         height: "100vh",
         borderLeft: 2,
+       
         borderColor: "divider",
         overflow: "hidden",
         transition: "width 0.3s ease",
