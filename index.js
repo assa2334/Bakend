@@ -12,8 +12,8 @@ const mongoose = require('mongoose');
 const Grid = require('gridfs-stream');
 const { Readable } = require('stream');
 const { MongoClient, GridFSBucket } = require('mongodb');
-
-
+const socketHandler = require('./router/socket');
+const fetch = require("node-fetch");
 
 
 const app = express();
@@ -25,28 +25,18 @@ let port = process.env.PORT;
 const server = http.createServer(app);
 const io = new Server(server,{
     cors:{
-        origin:'*',
-        methods:'POST,GET'
+      origin: '*', // ✅ Allow both local & network clients
+      methods: ["GET", "POST"],
+      allowedHeaders: ["Content-Type"],
+      credentials: true
     },
 })
 
-// io.on('connection',(socket)=>{
-//     console.log(' user connection',socket.id);
-    
-//     socket.on("sendMessage",(data)=>{
-//         io.emit("receiveMessage",{message:data})
-//         console.log(data);
-        
-//     })
+socketHandler(io);
 
-//     socket.on('disconnection',()=>{
-//         console.log('disconnect',socket.id);
-//     })
-// })
-
-// app.get('/',(req,res)=>{
-//     res.send('Welcome');
-// });
+app.get('/',(req,res)=>{
+    res.send('Welcome');
+});
 app.use('/api/v8',route)
 
 
@@ -125,7 +115,7 @@ app.get('/file/:filename', async (req, res) => {
 
 
 
-server.listen(port,(error)=>{
+server.listen(port ,"0.0.0.0",(error)=>{
     if (error) {
         console.log('some error this code',error);
     }

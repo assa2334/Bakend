@@ -7,12 +7,14 @@ const middelware = require('../middleware/index')
 const router= express.Router();
 // add User
 router.post('/adduser',Userctrl.addUser);
+// get use data
+router.post('/getUser',Userctrl.getUser)
 // login user
 router.post('/loginUser',Userctrl.loginUser);
 // name change 
-router.post('/Namechange',middelware.validateToken,Userctrl.Namechange);
+router.post('/Namechange',Userctrl.Namechange);
 // change about
-router.post('/Aboutchange',middelware.validateToken,Userctrl.Aboutchange);
+router.post('/Aboutchange',Userctrl.Aboutchange);
 // chang ProfileImage
 router.post('/ProfileImage',middelware.upload.single('ProfileImage'),Userctrl.Aboutchange);
 // uploadfile 
@@ -20,17 +22,17 @@ router.post('/Uploadfile',middelware.uploadfile.single('file'),Userctrl.UploadFi
 // upload file
 router.post('/UploadVideo',middelware.validateToken,middelware.uploadfile.single('file'),Userctrl.UploadVideo);
 // chage Password 
-router.post('/changePassword', middelware.validateToken, Userctrl.changePassword);
+router.post('/changePassword',  Userctrl.changePassword);
 //create conversation
-router.post('/conversation', middelware.validateToken, Userctrl.conversation);
+router.post('/conversation',  Userctrl.conversation);
 // save message
 router.post('/sendmessage', Userctrl.sendmessage);
 //find message
 router.post('/findmessage', Userctrl.findmessage);
 // all user
 router.post('/FindUser',middelware.validateToken,Userctrl.FindUser);
-
-
+// email verify
+router.post('/emailverify',Userctrl.emailverify);
 
 
 module.exports = router;

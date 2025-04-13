@@ -11,20 +11,24 @@ require('dotenv').config();
 
 middle.validateToken= async(req,res,next)=>{
     let token = req.headers.token;
+  
     if (!token) {
-        res.status(400).send('your token not find');
+        res.status(400).send('your token not1 find');
     }else{
        try {
         let TokenEmail = jwt.verify(token, process.env.TEXTPASSWORD,);
         if (!TokenEmail.Email) {
-            res.status(400).send('your token not find');
+            res.status(400).send('your token not2 find');
         }else{
             let Email = TokenEmail.Email
             const user = await UserModel.findOne({ Email });
             if (!user) {
                 console.log('user fall');
-                res.status(400).send('your token not find');
-            }else{
+                res.status(400).send('your token not3 find');
+            }if (!user.isverify) {
+                res.status(400).send('your token not4 find');
+            }
+            else{
                 console.log('user pass');
                 req.user = user
                 next()
