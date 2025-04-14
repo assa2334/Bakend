@@ -22,186 +22,74 @@ const socketHandler = (io) => {
             
 
             // Get user details
-            const userData = await UserModel.findById(userId).lean();
+            
+
+            // Voice Call Handling
+            socket.on("Request-Call", async (data) => {
+                const { sender, receiver, offer, type } = data;
+            
+                const receiverSocketId = activeUsers.get(receiver);
+                
+                if (receiverSocketId) {
+                    // Send the offer to the receiver
+                    const userData = await UserModel.findById(sender);
             if (!userData) {
                 throw new Error('User not found');
             }
-
-            // Voice Call Handling
-            socket.on('startVoiceCall', async ({ receiverId }) => {
-                try {
-                    console.log(`Voice call initiated from ${userId} to ${receiverId}`);
-                    
-                    if (!activeUsers.has(receiverId)) {
-                        socket.emit('callError', { message: 'User is offline' });
-                        return;
-                    }
-
-                    const callId = `call_${userId}_${receiverId}_${Date.now()}`;
-                    activeCalls.set(callId, {
-                        participants: { sender: userId, receiver: receiverId },
-                        type: 'voice',
-                        status: 'ringing'
+                    io.to(receiverSocketId).emit("Incoming-Call", {
+                        sender,
+                        offer,
+                        type,
+                        user:userData,
+                        receiver,
                     });
-
-                    // Notify receiver
-                    io.to(activeUsers.get(receiverId)).emit('incomingVoiceCall', {
-                        callId,
-                        caller: userData
+            
+                    console.log(`Call request sent from ${sender} to ${receiver}`);
+                } else {
+                    // Receiver is not online
+                    socket.emit("Call-Failed", {
+                        message: "User is not available"
                     });
-
-                    socket.emit('callInitiated', { callId });
-
-                } catch (error) {
-                    console.error('Voice call error:', error);
-                    socket.emit('callError', { message: error.message });
+            
+                    console.log(`Call failed. Receiver ${receiver} is not online.`);
                 }
             });
-
-            // Video Call Handling
-            socket.on('startVideoCall', async ({ receiverId }) => {
-                try {
-                    console.log(`Video call initiated from ${userId} to ${receiverId}`);
-                    
-                    if (!activeUsers.has(receiverId)) {
-                        socket.emit('callError', { message: 'User is offline' });
-                        return;
-                    }
-
-                    const callId = `call_${userId}_${receiverId}_${Date.now()}`;
-                    activeCalls.set(callId, {
-                        participants: { sender: userId, receiver: receiverId },
-                        type: 'video',
-                        status: 'ringing'
+            socket.on("Answer-Call", async (data) => {
+                const { sender, receiver, answer } = data;
+            
+                const senderSocketId = activeUsers.get(sender);
+                if (!senderSocketId) {
+                    socket.emit("Call-Failed", {
+                        message: "Sender is not available"
                     });
-
-                    // Notify receiver
-                    io.to(activeUsers.get(receiverId)).emit('incomingVideoCall', {
-                        callId,
-                        caller: userData
-                    });
-
-                    socket.emit('callInitiated', { callId });
-
-                } catch (error) {
-                    console.error('Video call error:', error);
-                    socket.emit('callError', { message: error.message });
+                    console.log(`Answer failed. Sender ${sender} not online.`);
+                    return;
                 }
+            
+                // Send answer back to sender
+                io.to(senderSocketId).emit("Call-Accepted", {
+                    sender,
+                    receiver,
+                    answer
+                });
+            
+                console.log(`Call answered by ${receiver} for ${sender}`);
             });
-
-            // Call Answer Handling
-            socket.on('answerCall', ({ callId, answer }) => {
-                try {
-                    const call = activeCalls.get(callId);
-                    if (!call) {
-                        throw new Error('Invalid call ID');
-                    }
-
-                    if (call.participants.receiver !== userId) {
-                        throw new Error('Unauthorized to answer this call');
-                    }
-
-                    if (answer) {
-                        call.status = 'active';
-                        // Notify caller
-                        io.to(activeUsers.get(call.participants.sender)).emit('callAccepted', { 
-                            callId,
-                            type: call.type
-                        });
-                    } else {
-                        // Notify caller
-                        io.to(activeUsers.get(call.participants.sender)).emit('callRejected', { callId });
-                        activeCalls.delete(callId);
-                    }
-                } catch (error) {
-                    console.error('Answer call error:', error);
-                    socket.emit('callError', { message: error.message });
-                }
-            });
-
-            // WebRTC Signaling
-            socket.on('iceCandidate', ({ candidate, callId, targetId }) => {
-                try {
-                    const targetSocketId = activeUsers.get(targetId);
-                    if (!targetSocketId) {
-                        throw new Error('Recipient not available');
-                    }
-
-                    // Filter out TCP candidates (optional)
-                    if (candidate.candidate.includes('tcp')) {
-                        console.log('Filtering out TCP candidate');
-                        return;
-                    }
-
-                    io.to(targetSocketId).emit('iceCandidate', { 
-                        candidate,
-                        callId
-                    });
-                } catch (error) {
-                    console.error('ICE candidate error:', error);
-                }
-            });
-
-            // Mute State Handling
-            socket.on('muteState', ({ callId, isMuted }) => {
-                try {
-                    const call = activeCalls.get(callId);
-                    if (!call) return;
-
-                    const otherUserId = call.participants.sender === userId 
-                        ? call.participants.receiver 
-                        : call.participants.sender;
-
-                    if (activeUsers.has(otherUserId)) {
-                        io.to(activeUsers.get(otherUserId)).emit('remoteMute', isMuted);
-                    }
-                } catch (error) {
-                    console.error('Mute state error:', error);
-                }
-            });
-
-            // End Call Handling
-            socket.on('endCall', ({ callId }) => {
-                try {
-                    const call = activeCalls.get(callId);
-                    if (!call) return;
-
-                    const otherUserId = call.participants.sender === userId 
-                        ? call.participants.receiver 
-                        : call.participants.sender;
-
-                    if (activeUsers.has(otherUserId)) {
-                        io.to(activeUsers.get(otherUserId)).emit('callEnded', { callId });
-                    }
-
-                    activeCalls.delete(callId);
-                    console.log(`Call ${callId} ended`);
-                } catch (error) {
-                    console.error('End call error:', error);
-                }
-            });
+            
+             socket.on("ice-candidate", ({ to, candidate }) => {
+            const targetSocketId = activeUsers.get(to);
+            if (targetSocketId) {
+                io.to(targetSocketId).emit("ice-candidate", { candidate });
+            }
+        });
 
             // Disconnection Handling
             socket.on('disconnect', async () => {
                 console.log(`User disconnected: ${userId}`);
-                activeUsers.delete(userId);
+                // activeUsers.delete(userId);
               
                 // End all active calls for this user
-                for (const [callId, call] of activeCalls) {
-                    if (call.participants.sender === userId || call.participants.receiver === userId) {
-                        const otherUserId = call.participants.sender === userId 
-                            ? call.participants.receiver 
-                            : call.participants.sender;
-
-                        if (activeUsers.has(otherUserId)) {
-                            io.to(activeUsers.get(otherUserId)).emit('callEnded', { 
-                                callId,
-                                reason: 'User disconnected' 
-                            });
-                        }
-                        activeCalls.delete(callId);
-                    }
-                }
+              
             });
 
         } catch (error) {
@@ -211,15 +99,7 @@ const socketHandler = (io) => {
     });
 
     // Periodically clean up stale calls (optional)
-    setInterval(() => {
-        const now = Date.now();
-        for (const [callId, call] of activeCalls) {
-            const callTime = parseInt(callId.split('_')[3]);
-            if (now - callTime > 3600000) { // 1 hour timeout
-                activeCalls.delete(callId);
-            }
-        }
-    }, 60000); // Check every minute
+ 
 };
 
 module.exports = socketHandler;
