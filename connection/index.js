@@ -14,10 +14,13 @@
 // });
 
 // module.exports = mongoose.connection;
-const mongoose = require('mongoose');
+const mongoose = require('mongoose',{
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+});
 require('dotenv').config();
 
-mongoose.connect(`mongodb+srv://${process.env.NAME}:${process.env.PASSWORD}@cluster0.mxi10.mongodb.net/?retryWrites=true&w=majority&appName=${process.env.PROJECT}`)
+mongoose.connect(`${process.env.BACKENDURL}`)
 .then(()=>{
 console.log("DATABASE CONNECTION");
 }).catch((error)=>{

@@ -42,7 +42,7 @@ app.use('/api/v8',route)
 
 
 
-mongoose.connect(`mongodb+srv://${process.env.NAME}:${process.env.PASSWORD}@cluster0.mxi10.mongodb.net/?retryWrites=true&w=majority&appName=${process.env.PROJECT}`, {
+mongoose.connect(`${process.env.BACKENDURL}`, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
 });
