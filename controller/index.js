@@ -8,10 +8,14 @@ const messageSchema = require('../model/Message');
 
 const nodemailer = require("nodemailer");
 const CryptoJS = require("crypto-js");
-
+const sendToUser = require('../router/socket')
 const Userctrl = {};
 
 const funct = require('../function/index');
+
+const mongoose = require("mongoose");
+const Grid = require("gridfs-stream");
+const conn = mongoose.connection;
 
 
 
@@ -354,9 +358,14 @@ Userctrl.sendmessage = async (req,res)=>{
             })
             let check = await message.save();
             if (check) {
+                 sendToUser.sendToUser(recipient, {
+                    type: 'new_message',
+                    data: message 
+                })
                 res.status(200).send({
                     messsage:'save',
                     data:message,
+                  
                 })
             }else{
                 res.status(401).send('some error');
@@ -365,12 +374,45 @@ Userctrl.sendmessage = async (req,res)=>{
             res.status(300).send({
                 error:error,
             });
-            console.log('create conversation function crash');
+            console.log('message send  function crash');
         }
     }
 }
+
+Userctrl.  updateMessage = async (req, res) => {
+    console.log("**** updata message ***** ");
+    
+    const { messageId, text } = req.body;
+  
+    if (!messageId || !text) {
+      return res.status(400).send("Message ID and new text are required");
+    }
+  
+    try {
+        const updatedMessage = await messageSchema.findByIdAndUpdate(
+           { _id:messageId},  // First parameter: the ID
+            { text: text },  // Second parameter: update object
+            { new: true }  // Third parameter: options
+          );
+  
+      if (!updatedMessage) {
+        return res.status(404).send("Message not found");
+      }
+  
+      return res.status(200).send({
+        message: "Message updated successfully",
+        data: updatedMessage,
+      });
+    } catch (error) {
+      console.error("Update error:", error);
+      return res.status(500).send("Server error");
+    }
+  };
+  
 //fetch message
 Userctrl.findmessage = async(req,res)=>{
+    console.log("**** message find *******");
+    
     let {conversation}= req.body;
     if (!req.body && !conversation) {
         res.send('Please send complete Parameter');
@@ -394,7 +436,57 @@ Userctrl.findmessage = async(req,res)=>{
     }
    
 }
+Userctrl.deleteMessage = async (req, res) => {
+    const { messageId } = req.body;
+    
+    if (!messageId) {
+        return res.status(400).send("Message ID is required");
+    }
 
+    try {
+        // Initialize GridFS connection
+        const conn = mongoose.connection;
+        const gfs = new mongoose.mongo.GridFSBucket(conn.db, {
+            bucketName: "uploads" // your bucket name
+        });
+
+        const message = await messageSchema.findById(messageId);
+        if (!message) {
+            return res.status(404).send("Message not found");
+        }
+
+        // Delete media file if exists
+        if (message.messageType !== "text" && message.mediaUrl) {
+            try {
+                // Extract filename from URL (adjust based on your URL structure)
+                const filename = message.mediaUrl.split('/').pop();
+                
+                // Find and delete the file
+                const files = await gfs.find({ filename }).toArray();
+                if (files.length > 0) {
+                    await gfs.delete(files[0]._id);
+                    console.log("File deleted from GridFS");
+                } else {
+                    console.log("No matching file found in GridFS");
+                }
+            } catch (fileError) {
+                console.error("Error deleting file:", fileError);
+                // Continue with message deletion even if file deletion fails
+            }
+        }
+
+        // Delete the message
+        await messageSchema.findByIdAndDelete(messageId);
+        
+        return res.status(200).send({
+            message: "Message deleted successfully",
+        });
+    } catch (error) {
+        console.error("Delete error:", error);
+        return res.status(500).send("Server error");
+    }
+};
+  
 
 //fetch User
 Userctrl.FindUser = async(req,res)=>{
@@ -437,11 +529,15 @@ Userctrl.UploadFile = async (req, res) => {
             sender:req.body.sender,
             recipient:req.body.recipient,
             messageType: req.body.Type,
-            mediaUrl:`http://localhost:9000/file/${req.file.filename}` 
+            mediaUrl:`/api/files/${req.file.filename}` 
         });
 
         let check = await message.save();
         if (check) {
+            sendToUser.sendToUser(req.body.recipient, {
+                type: 'new_message',
+                data: message 
+            })
             res.status(200).send({
                 message: 'Message saved successfully',
                 data: message,

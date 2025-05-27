@@ -21,7 +21,7 @@ app.use(cors());
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
-let port = process.env.PORT;
+let port = process.env.PORT || 9001;
 const server = http.createServer(app);
 const io = new Server(server,{
     cors:{
@@ -32,7 +32,7 @@ const io = new Server(server,{
     },
 })
 
-socketHandler(io);
+socketHandler.socketHandler(io);
 
 app.get('/',(req,res)=>{
     res.send('Welcome');
@@ -57,7 +57,7 @@ conn.once('open', () => {
     });
 });
 
-app.get('/file/:filename', async (req, res) => {
+app.get('/api/files/:filename', async (req, res) => {
     const { filename } = req.params;
     console.log('*********** File name ************', filename);
   

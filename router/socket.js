@@ -4,8 +4,37 @@ const UserModel = require('../model/User');
 // Track active users and calls
 const activeUsers = new Map(); // { userId: socketId }
 const activeCalls = new Map(); // { callId: { participants: {sender, receiver}, type, status } }
+const obj = {}
 
-const socketHandler = (io) => {
+
+
+obj.socketHandler = (io) => {
+    obj.sendToUser = function( userId, message) {
+        try {
+          console.log("Attempting to send message to user:", userId);
+      
+          const socketId = activeUsers.get(userId);
+          if (!socketId) {
+            console.log("User not connected:", userId);
+            return false;
+          }
+      
+          const socket = io.sockets.sockets.get(socketId);
+          if (!socket) {
+            activeUsers.delete(userId);
+            console.log("Stale connection removed for user:", userId);
+            return false;
+          }
+      
+          console.log("Sending message to socket:", socketId);
+          socket.emit('new_message', message);
+          return true;
+        } catch (error) {
+          console.error('Error sending to user:', error);
+          return null;
+        }
+      }
+    
     io.on('connection', async (socket) => {
         const userId = socket.handshake.query.userId;
         
@@ -19,6 +48,9 @@ const socketHandler = (io) => {
         activeUsers.set(userId, socket.id);
         
         try {
+
+   
+
             
 
             // Get user details
@@ -222,4 +254,7 @@ const socketHandler = (io) => {
     }, 60000); // Check every minute
 };
 
-module.exports = socketHandler;
+
+  
+
+module.exports =obj ;

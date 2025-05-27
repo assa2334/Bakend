@@ -64,7 +64,7 @@ const storage = multer.diskStorage({
 })
 
 const storagefile = new GridFsStorage({
-    url: `mongodb+srv://${process.env.NAME}:${process.env.PASSWORD}@cluster0.mxi10.mongodb.net/?retryWrites=true&w=majority&appName=${process.env.PROJECT}`,
+    url: `${process.env.BACKENDURL}`,
     file: (req, file) => {
         let name = `${file.fieldname}-${Date.now()}-${Math.round(Math.random() * 1E9)}`;
        console.log('file upoaded');
