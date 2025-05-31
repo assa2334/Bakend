@@ -1,17 +1,55 @@
 const UserModel = require('../model/User');
 
 const activeUsers = new Map(); // { userId: socketId }
-const activeCalls = new Map(); // { callId: { sender, receiver, type, status } }
+const activeCalls = new Map(); // { callId: { participants: {sender, receiver}, type, status } }
+const obj = {}
 
-const socketHandler = (io) => {
-  io.on('connection', async (socket) => {
-    const userId = socket.handshake.query.userId;
 
-    if (!userId) {
-      socket.emit('error', { message: 'User ID is required' });
-      socket.disconnect();
-      return;
-    }
+
+obj.socketHandler = (io) => {
+    obj.sendToUser = function( userId, message) {
+        try {
+          console.log("Attempting to send message to user:", userId);
+      
+          const socketId = activeUsers.get(userId);
+          if (!socketId) {
+            console.log("User not connected:", userId);
+            return false;
+          }
+      
+          const socket = io.sockets.sockets.get(socketId);
+          if (!socket) {
+            activeUsers.delete(userId);
+            console.log("Stale connection removed for user:", userId);
+            return false;
+          }
+      
+          console.log("Sending message to socket:", socketId);
+          socket.emit('new_message', message);
+          return true;
+        } catch (error) {
+          console.error('Error sending to user:', error);
+          return null;
+        }
+      }
+    
+    io.on('connection', async (socket) => {
+        const userId = socket.handshake.query.userId;
+        
+        if (!userId) {
+            socket.emit('error', { message: 'User ID is required' });
+            socket.disconnect();
+            return;
+        }
+
+        console.log(`User connected: ${userId}`);
+        activeUsers.set(userId, socket.id);
+        
+        try {
+
+   
+
+            
 
     console.log(`User connected: ${userId}`);
     activeUsers.set(userId, socket.id);
@@ -162,7 +200,15 @@ const socketHandler = (io) => {
         }
       }
     });
-  });
+ 
+   } catch (error) {
+    console.log("socket cash all code check problem");
+    
+    }
+     });
 };
 
-module.exports = socketHandler;
+
+  
+
+module.exports =obj ;

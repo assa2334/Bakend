@@ -21,7 +21,7 @@ app.use(cors());
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
-let port = process.env.PORT;
+let port = process.env.PORT || 9001;
 const server = http.createServer(app);
 const io = new Server(server,{
     cors:{
@@ -32,7 +32,7 @@ const io = new Server(server,{
     },
 })
 
-socketHandler(io);
+socketHandler.socketHandler(io);
 
 app.get('/',(req,res)=>{
     res.send('Welcome');
@@ -42,7 +42,7 @@ app.use('/api/v8',route)
 
 
 
-mongoose.connect(`mongodb+srv://${process.env.NAME}:${process.env.PASSWORD}@cluster0.mxi10.mongodb.net/?retryWrites=true&w=majority&appName=${process.env.PROJECT}`, {
+mongoose.connect(`${process.env.BACKENDURL}`, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
 });
@@ -57,7 +57,7 @@ conn.once('open', () => {
     });
 });
 
-app.get('/file/:filename', async (req, res) => {
+app.get('/api/files/:filename', async (req, res) => {
     const { filename } = req.params;
     console.log('*********** File name ************', filename);
   
