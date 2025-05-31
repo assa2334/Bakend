@@ -33,6 +33,10 @@ router.post('/findmessage', Userctrl.findmessage);
 router.post('/FindUser',middelware.validateToken,Userctrl.FindUser);
 // email verify
 router.post('/emailverify',Userctrl.emailverify);
+// delete message
+router.delete('/message/:id', Userctrl.deleteMessage);
+// edit message
+router.put('/message/:id', Userctrl.editMessage);
 
 
 module.exports = router;

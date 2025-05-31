@@ -369,6 +369,63 @@ Userctrl.sendmessage = async (req,res)=>{
         }
     }
 }
+
+
+Userctrl.deleteMessage = async (req, res) => {
+    const { id } = req.params;
+  
+    if (!id) {
+      return res.status(400).send('Message ID is required');
+    }
+  
+    try {
+      const deleted = await messageSchema.findByIdAndDelete(id);
+      if (deleted) {
+        res.status(200).send({
+          message: 'Message deleted',
+          data: deleted,
+        });
+      } else {
+        res.status(404).send('Message not found');
+      }
+    } catch (error) {
+      console.error('Delete message failed:', error);
+      res.status(500).send({ error });
+    }
+  };
+
+
+  Userctrl.editMessage = async (req, res) => {
+    const { id } = req.params;
+    const { text } = req.body;
+  
+    if (!id || !text) {
+      return res.status(400).send('Message ID and new text are required');
+    }
+  
+    try {
+      const updated = await messageSchema.findByIdAndUpdate(
+        id,
+        { text },
+        { new: true } // return updated document
+      );
+  
+      if (updated) {
+        res.status(200).send({
+          message: 'Message updated',
+          data: updated,
+        });
+      } else {
+        res.status(404).send('Message not found');
+      }
+    } catch (error) {
+      console.error('Edit message failed:', error);
+      res.status(500).send({ error });
+    }
+  };
+  
+  
+
 //fetch message
 Userctrl.findmessage = async(req,res)=>{
     let {conversation}= req.body;
