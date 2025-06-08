@@ -18,11 +18,17 @@ const mongoose = require('mongoose',{
     useNewUrlParser: true,
     useUnifiedTopology: true,
 });
+
+
+
+
 require('dotenv').config();
 
 mongoose.connect(`${process.env.BACKENDURL}`)
 .then(()=>{
+
 console.log("DATABASE CONNECTION");
+
 }).catch((error)=>{
     console.log('Database not connection',error);
     

@@ -67,13 +67,15 @@ funct.sendemail = async (prop) => {
           }
           return obj;
         }
-    });
-    console.log("Message sent: %s", info);
+
+    // console.log("Message sent: %s", info);
     let obj = {
         opt:opt,
         info:info
     }
     return obj;
+    });
+
       
    } catch (error) {
     let obj = {

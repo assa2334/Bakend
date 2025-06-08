@@ -8,6 +8,7 @@ conversation:{type:mongoose.Schema.Types.ObjectId,ref:'conversation', required:t
   createdAt: { type: Date, default: Date.now },
   read: { type: Boolean, default: false },  // Message read status
   
+  
   // New fields for media and call details
   messageType: {
     type: String,

@@ -15,7 +15,6 @@ const { MongoClient, GridFSBucket } = require('mongodb');
 const socketHandler = require('./router/socket');
 const fetch = require("node-fetch");
 
-
 const app = express();
 app.use(cors());
 app.use(cookieParser());
@@ -42,10 +41,10 @@ app.use('/api/v8',route)
 
 
 
-mongoose.connect(`${process.env.BACKENDURL}`, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-});
+// mongoose.connect(`${process.env.BACKENDURL}`, {
+//     useNewUrlParser: true,
+//     useUnifiedTopology: true,
+// });
 
 const conn = mongoose.connection;
 let gridFSBucket;
@@ -105,7 +104,75 @@ app.get('/api/files/:filename', async (req, res) => {
   });
   
 
+// app.get('/api/files/:filename', async (req, res) => {
+//     const { filename } = req.params;
+//     console.log('*********** File name ************', filename);
 
+//     try {
+//         // Check if the file exists in GridFS
+//         const file = await conn.db.collection('uploads.files').findOne({ filename });
+
+//         if (!file) {
+//             return res.status(404).send(`File not found: ${filename}`);
+//         }
+
+//         const mime = require('mime-types');
+//         const fileExtension = mime.extension(file.contentType) || 'bin';
+//         console.log('*********** File Extension ************', fileExtension);
+
+//         // Set common headers
+//         res.set('Content-Type', file.contentType);
+//         res.set('Accept-Ranges', 'bytes'); // Enable range requests
+//         res.set('Cache-Control', 'public, max-age=31536000'); // Cache for 1 year
+
+//         // Handle range requests (for parallel downloads)
+//         const range = req.headers.range;
+//         if (range) {
+//             // Parse range (example: "bytes=0-999")
+//             const parts = range.replace(/bytes=/, "").split("-");
+//             const start = parseInt(parts[0], 10);
+//             const end = parts[1] ? parseInt(parts[1], 10) : file.length - 1;
+//             const chunkSize = (end - start) + 1;
+
+//             // Set partial content headers
+//             res.status(206);
+//             res.set('Content-Range', `bytes ${start}-${end}/${file.length}`);
+//             res.set('Content-Length', chunkSize);
+
+//             // Create stream for the specific range
+//             const readStream = gridFSBucket.openDownloadStream(file._id, {
+//                 start,
+//                 end: end + 1 // GridFS expects end to be exclusive
+//             });
+
+//             readStream.on('error', (err) => {
+//                 console.error('Stream error:', err);
+//                 if (!res.headersSent) {
+//                     res.status(500).send('Stream error');
+//                 }
+//             });
+
+//             readStream.pipe(res);
+//         } else {
+//             // For non-range requests or small files
+//             if (file.contentType.startsWith('video/') || file.contentType.startsWith('audio/')) {
+//                 // Stream media files directly
+//                 res.set('Content-Length', file.length);
+//                 const readStream = gridFSBucket.openDownloadStreamByName(filename);
+//                 readStream.pipe(res);
+//             } else {
+//                 // Download other files as attachment
+//                 res.set('Content-Disposition', `attachment; filename="${file.filename}.${fileExtension}"`);
+//                 res.set('Content-Length', file.length);
+//                 const readStream = gridFSBucket.openDownloadStreamByName(filename);
+//                 readStream.pipe(res);
+//             }
+//         }
+//     } catch (err) {
+//         console.error('Error fetching file:', err);
+//         res.status(500).send('Error fetching file');
+//     }
+// });
 
 
 
