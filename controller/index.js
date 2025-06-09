@@ -460,7 +460,7 @@ Userctrl.conversation = async (req, res) => {
     try {
             const key = [senderid, receiverid].sort().join('_');
              console.log('conversation key:', key);
-        let user = await conversation.findOne({ conversationKey: key });
+        let user = await conversation.findOne({ conversation: key });
         if (user) {
             res.send(user);
         } else {
@@ -488,6 +488,10 @@ let deleteMessages = {}; // Changed variable name to plural for clarity
 
 async function DeleteMessageWithCron() {
   try {
+          const conn = mongoose.connection;
+        const gfs = new mongoose.mongo.GridFSBucket(conn.db, {
+            bucketName: "uploads" // your bucket name
+        });
     // Case 1: Delete specific messages with cron jobs
     if (Object.keys(deleteMessages).length > 0) {
     const conversationId = Object.keys(deleteMessages)[0];
@@ -505,6 +509,30 @@ const totalSeconds = Math.floor(expires / 1000);
         
         // Schedule deletion for each message at its specific time
         cron.schedule(cronTime, async () => {
+        
+              const messages = await messageSchema.find({ conversation: conversationId });
+                for (const message of messages) {
+                     if (message.mediaUrl) {
+                        // Initialize GridFS connection
+                        try {
+                // Extract filename from URL (adjust based on your URL structure)
+                const filename = message.mediaUrl.split('/').pop();
+
+                // Find and delete the file
+                const files = await gfs.find({ filename }).toArray();
+                if (files.length > 0) {
+                    await gfs.delete(files[0]._id);
+                    console.log("File deleted from GridFS");
+                } else {
+                    console.log("No matching file found in GridFS");
+                }
+            } catch (fileError) {
+                console.error("Error deleting file:", fileError);
+                // Continue with message deletion even if file deletion fails
+            }
+      
+                     }
+                }
             await messageSchema.deleteMany({ conversation: conversationId });
             delete deleteMessages[conversationId];
             await conversation.findByIdAndUpdate({ _id: conversationId },{remainTime:null},{ new: true } );
@@ -514,39 +542,62 @@ const totalSeconds = Math.floor(expires / 1000);
     } 
     // Case 2: Delete all messages (when deleteMessages is empty)
     else {
-        const conversations = await conversation.find();
-        console.log(conversations,"data");
-      for (const conv of conversations) {
-        await messageSchema.deleteMany({ conversation: conv._id });
-         await conversation.findByIdAndUpdate({ _id: conv._id },{remainTime:null},{ new: true } );
-        console.log(`Deleted all messages for conversation ${conv._id}`);
-      }
+        cron.schedule('*/30 * * * * *', async () => {
+        
+              const messages = await messageSchema.find();
+                for (const message of messages) {
+                     if (message.mediaUrl) {
+                        // Initialize GridFS connection
+                        try {
+                // Extract filename from URL (adjust based on your URL structure)
+                const filename = message.mediaUrl.split('/').pop();
+
+                // Find and delete the file
+                const files = await gfs.find({ filename }).toArray();
+                if (files.length > 0) {
+                    await gfs.delete(files[0]._id);
+                    console.log("File deleted from GridFS");
+                } else {
+                    console.log("No matching file found in GridFS");
+                }
+            } catch (fileError) {
+                console.error("Error deleting file:", fileError);
+                // Continue with message deletion even if file deletion fails
+            }
+      
+                     }
+                }
+            await messageSchema.deleteMany({ conversation: conversationId });
+            delete deleteMessages[conversationId];
+            await conversation.findByIdAndUpdate({ _id: conversationId },{remainTime:null},{ new: true } );
+            console.log(`Deleted messages for conversation ${conversationId}`);
+        });
     }
   } catch (error) {
     console.error('Error in DeleteMessageWithCron:', error);
   }
 }
-
+DeleteMessageWithCron()
 async function updataconversation(conversationId, text, remainTime) {
   console.log("**** update conversation function called ****", conversationId, text, remainTime);
 
   return new Promise(async (resolve, reject) => {
     try {
       // Step 1: Fetch existing conversation
-      const existingConversation = await conversation.findById(conversationId);
+      const existingConversation = await conversation.findById({_id : conversationId});
 
       if (!existingConversation) {
         throw new Error("Conversation not found");
       }
 
       // Step 2: Check remdainTime
-      if (existingConversation.remdainTime === null) {
+      if (existingConversation.remdainTime == null) {
         // Step 3: Update only if remdainTime is null
         const updatedConversation = await conversation.findByIdAndUpdate(
-          conversationId,
+          {_id:conversationId},
           {
-            message: text,
-            remdainTime: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours from now
+            // message: text,
+            remainTime: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours from now
           },
           { new: true }
         );
@@ -955,6 +1006,31 @@ Userctrl.UploadVideo = async (req, res) => {
 };
 
 
+Userctrl.getCallHistory = async (req, res) => {
+    console.log("**** get Call History ****");
+    const conversationId = req.params.conversationId;
+ // Assuming conversationId is passed as a query parameter
+    if (!conversationId) {
+        return res.status(400).send("Conversation ID is required");
+    }
+    try {
+        const callHistory = await messageSchema.find({
+            conversation: conversationId,
+            isCall: true // Assuming isCall is a boolean field indicating call messages
+        }).sort({ createdAt: -1 }); // Sort by createdAt in descending order
+        if (callHistory.length === 0) {
+            return res.status(404).send("No call history found for this conversation");
+        }
+        res.status(200).json({
+            message: "Call history retrieved successfully",
+            data: callHistory
+        });
+    }
+    catch (error) {
+        console.error("Error fetching call history:", error);
+        res.status(500).send("Internal server error");
+    }
+}
 
 
 
