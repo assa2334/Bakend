@@ -747,7 +747,7 @@ Userctrl.findmessage = async (req, res) => {
         try {
             let message = await messageSchema.find({ conversation });
             if (message) {
-                console.log(message, "message");
+        
 
                 res.send({
                     data: message
