@@ -1,5 +1,5 @@
 const UserModel = require('../model/User');
-
+const OtherFUnction = require('../controller/controllerSocket/user');
 const activeUsers = new Map(); // { userId: socketId }
 const activeCalls = new Map(); // { callId: { participants: {sender, receiver}, type, status } }
 const obj = {}
@@ -37,12 +37,13 @@ obj.socketHandler = (io) => {
         const userId = socket.handshake.query.userId;
         
         if (!userId) {
+            console.log('❌ No userId provided in handshake query');
             socket.emit('error', { message: 'User ID is required' });
             socket.disconnect();
             return;
         }
 
-        console.log(`User connected: ${userId}`);
+        console.log(`✅ User connected: ${userId}`);
         activeUsers.set(userId, socket.id);
         
         try {
@@ -164,18 +165,24 @@ obj.socketHandler = (io) => {
     // ========================
     // ❌ Call Ended
     // ========================
-    socket.on("End-Call", ({ sender, receiver }) => {
+    socket.on("End-Call", async ({ sender, receiver,endCall,Type , StartTime, EndTime, DurationTime , }) => {
+      console.log( "call cross between ",sender,receiver,endCall,Type, StartTime, EndTime, DurationTime);
+      
       const callId = `${sender}_${receiver}`;
       if (activeCalls.has(callId)) {
         activeCalls.get(callId).status = "ended";
       }
 
-      const receiverSocketId = activeUsers.get(receiver);
+      const receiverSocketId = activeUsers.get(endCall);
       if (receiverSocketId) {
+        console.log(`📴 Call ended between ${sender} and ${receiver}`);
+          io.to(receiverSocketId).emit("Call-Failed", { message: "Second Person cross Call" });
         io.to(receiverSocketId).emit("Call-Ended", { sender });
       }
 
-      console.log(`📴 Call ended between ${sender} and ${receiver}`);
+      let respones = await OtherFUnction.StrogeCallHistor(sender, receiver, Type, StartTime, EndTime, DurationTime, obj.sendToUser);
+      console.log(`Call history stored for ${sender} and ${receiver}` ,respones);
+      
     });
 
     // ========================

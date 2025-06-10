@@ -12,7 +12,7 @@ conversation:{type:mongoose.Schema.Types.ObjectId,ref:'conversation', required:t
   // New fields for media and call details
   messageType: {
     type: String,
-    enum: ['text', 'image', 'video', 'file', 'call'],
+    enum: ['text', 'image', 'video', 'file', 'voice','VideoCall'],
     default: 'text',
   },
   mediaUrl: { type: String },  // URL for media (image/video/file)
@@ -20,10 +20,10 @@ conversation:{type:mongoose.Schema.Types.ObjectId,ref:'conversation', required:t
   // Fields for call functionality
   isCall: { type: Boolean, default: false },  // Identifies if the message is a call
   callDetails: {
-    callType: { type: String, enum: ['voice', 'video'], required: false },  // Type of call
+    callType: { type: String, enum: ['VideoCall', 'voice'], required: false },  // Type of call
     callStartTime: { type: Date },  // Start time of the call
     callEndTime: { type: Date },  // End time of the call
-    callDuration: { type: Number },  // Duration of the call in seconds
+    callDuration: { type: String },  // Duration of the call in seconds
   },
 });
 
