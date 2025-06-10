@@ -16,6 +16,8 @@ middle.validateToken= async(req,res,next)=>{
         res.status(400).send('your token not1 find');
     }else{
        try {
+       
+        
         let TokenEmail = jwt.verify(token, process.env.TEXTPASSWORD,);
         if (!TokenEmail.Email) {
             res.status(400).send('your token not2 find');

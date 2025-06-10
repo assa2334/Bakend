@@ -3,9 +3,9 @@ const nodemailer = require("nodemailer");
 
 const funct = {}
 funct.sendemail = async (prop) => {
+  const { name,FullName,email,about } = prop;
+  console.log(name,FullName,email,about,"Error 123");
   console.log('user not find 4444444');
-    const { name,FullName,email,about } = prop;
-    console.log(name,FullName,email,about,"hello");
     
     console.log("************ Send Email ************************* ");
     if (!email) {
@@ -13,16 +13,16 @@ funct.sendemail = async (prop) => {
     }
    try {
      
-    const transporter = nodemailer.createTransport({
+    const transporter = await  nodemailer.createTransport({
         service: "gmail",
         secure: false, // true for port 465, false for other ports
         auth: {
-          user: "subhanashrafgujjar@gmail.com",
-          pass: "pbyz slxo vten eijf",
+          user: process.env.EMAIL, // Your email address
+          pass: process.env.PASSWORD, // Your email password or app password
         },
       });
-      let opt = Math.floor(100000 + Math.random() * 900000);
-      const info = await transporter.sendMail({
+      let opt = await Math.floor(100000 + Math.random() * 900000);
+      const info =  await transporter.sendMail({
         from: '"Subhan Ashraf 👻" <subhanashrafgujjar@gmail.com>', // Sender address
         to: `${email}`, // Recipient
         subject: "Your are login my website", // Email Subject
@@ -59,30 +59,23 @@ funct.sendemail = async (prop) => {
             </div>
         </div>
         `, // HTML Body
-    }, (error, info) => {
-        if (error) {
-          let obj = {
-            message : "Error in sending email",
-            error:error
-          }
-          return obj;
-        }
-
-    // console.log("Message sent: %s", info);
-    let obj = {
-        opt:opt,
-        info:info
-    }
-    return obj;
     });
-
+    console.log("Error 123", info.messageId);
+    let obj = {
+      info,
+      opt,
+    }
+    return await obj ;
       
    } catch (error) {
     let obj = {
       message : "Error in sending email",
       error:error
     }
+    console.log("Error 123", error);
+    
     return obj;
+
    }
 }
 

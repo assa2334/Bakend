@@ -34,49 +34,61 @@ Userctrl.addUser = async (req, res) => {
     console.log(req.body, "hello");
 
     if (req.body && Name && FullName && Email && Password) {
-        const emailDomain = Email.split('@')[1]?.toLowerCase();
-
-        if (!validator.isEmail(Email)) {
-            console.log("Invalid email format.");
-
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid email format.'
-            });
-        }
-
-        if (disposable(Email)) {
-            return res.status(400).json({
-                success: false,
-                message: 'Temporary/disposable emails are not allowed'
-            });
-        }
-
-        let obj = await funct.sendemail({ name: Name, FullName, email: Email, about: 'Hey there! I am using WhatsApp.' });
-        if (obj.message) {
-            res.status(200).send('Please Enter Correct Email you email adresss is not correct');
-        }
-
-        const response = await fetch('https://get.geojs.io/v1/ip/geo.json');
-        console.log(response);
-        const data = await response.json(); // Extract JSON
-
-        console.log(obj, "email send");
-
-        console.log('user not find 333333');
-        const encryptedPassword = CryptoJS.AES.encrypt("123456", secretKey).toString();
-
         try {
+            const emailDomain = Email.split('@')[1]?.toLowerCase();
+            const userIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+            if (!validator.isEmail(Email)) {
+                console.log("Invalid email format.");
+
+                return res.status(400).json('Invalid email format.');
+            }
+
+            if (disposable(Email)) {
+                return res.status(400).json('Temporary/disposable emails are not allowed');
+            }
+
+
+
+            const response = await fetch(`https://get.geojs.io/v1/ip/geo.json`);
+
+            const data = await response.json(); // Extract JSON
+            console.log(data, "data from geojs");
+
+
+            console.log('user not find 333333');
+            const encryptedPassword = CryptoJS.AES.encrypt("123456", secretKey).toString();
+
+
             console.log("************ User Email Pass  ************************* ");
 
             const user = await UserModel.findOne({ Email })
             if (user?.isverify === true) {
                 res.status(200).send('Your acount already correct Please Log in')
             }
+            else if (user) {
+                let obj = await funct.sendemail({ name: Name, FullName, email: Email, about: 'Hey there! I am using WhatsApp.' });
+
+                if (obj.message) {
+                    res.status(200).send('Please Enter Correct Email you email adresss is not correct');
+                }
+                user.otp = await obj?.opt;
+                user.emailexpire = new Date(Date.now() + 24 * 60 * 60 * 1000);
+                let create = await user.save();
+                res.status(200).json({
+                    message: 'Your acount create',
+                    data: user.Email,
+                    isverify: false,
+                })
+            }
             else {
 
+                let obj = await funct.sendemail({ name: Name, FullName, email: Email, about: 'Hey there! I am using WhatsApp.' });
 
-                let user = new UserModel({
+                if (obj.message) {
+                    res.status(200).send('Please Enter Correct Email you email adresss is not correct');
+                }
+                //  console.log(await obj, "email send");
+                let user = await new UserModel({
                     Name,
                     FullName,
                     Email,
@@ -84,7 +96,7 @@ Userctrl.addUser = async (req, res) => {
                     About: 'Hey there! I am using WhatsApp.',
                     img: req.body.img || " ",
                     Status: '',
-                    otp: obj.opt,
+                    otp: obj?.opt,
                     isverify: false,
                     emailexpire: new Date(Date.now() + 24 * 60 * 60 * 1000),
                     location: {
@@ -228,16 +240,16 @@ Userctrl.emailverify = async (req, res) => {
 
         // Check if OTP exists and is not expired (24-hour check)
         if (!user.emailexpire ||
-            new Date() > new Date(user.emailexpire.getTime() + 24 * 60 * 60 * 1000)) {
+            new Date() >= new Date(user.emailexpire)) {
             console.log("opt expired");
 
             return res.status(300).json({
                 success: false,
-                message: 'OTP has expired (valid for 24 hours only)'
+                message: 'if use already use this otp || OTP has expired (valid for 24 hours only)'
             });
         }
 
-        if (user.otp !== otp) {
+        if (`${user.otp}` !== otp) {
             return res.status(300).json({
                 success: false,
                 message: 'Invalid OTP'
@@ -265,17 +277,22 @@ Userctrl.emailverify = async (req, res) => {
             { expiresIn: '7d' } // Token expires in 7 days
         );
 
-        // Set cookie options
         const cookieOptions = {
-            expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+           
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict'
+            secure: false,
+            sameSite: 'Lax', // Changed from None
+            path: '/',
+            // path: '/',
+            // // permanent: true,
+            // priority: 'high',
+            //  domain: 'localhost' // Omit in development
         };
 
-        // Set cookie
-        res.cookie('token', token, cookieOptions);
-        return res.status(200).send({ message: 'Email Verify', data: { isverify: true } });
+        res.cookie('authToken', token, cookieOptions).status(200).send({ message: 'Email Verify', data: { isverify: true,token, } });;
+
+
 
     } catch (error) {
         console.error('Verification error:', error);
@@ -306,11 +323,35 @@ Userctrl.loginUser = async (req, res) => {
         const decryptedPassword = decryptedBytes.toString(CryptoJS.enc.Utf8);
 
         // Compare passwords
-        if (Password === decryptedPassword || req.body.email_verified === true) {
-            let token = jwt.sign({ Email }, `${process.env.TEXTPASSWORD}`);
-            return res.status(200).json({
+        if (Password === decryptedPassword || req.body.email_verified === true ) {
+             const token = jwt.sign(
+            {
+                _id: user._id,
+                Name: user.Name,
+                FullName: user.FullName,
+                Email: user.Email,
+                img: user.img,
+                isverify: user.isverify
+                // DO NOT include Password or other sensitive data
+            },
+            process.env.TEXTPASSWORD,
+            { expiresIn: '7d' } // Token expires in 7 days
+        );
+   const cookieOptions = {
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+           
+            httpOnly: true,
+            secure: false,
+            sameSite: 'Lax', // Changed from None
+            path: '/',
+            // path: '/',
+            // // permanent: true,
+            // priority: 'high',
+            //  domain: 'localhost' // Omit in development
+        };
+            return    res.cookie('authToken', token, cookieOptions).status(200).json({
                 message: 'Welcome Back',
-                data: user,
+                data: user.Email,
                 token
             });
         } else {
@@ -452,21 +493,21 @@ Userctrl.changePassword = async (req, res) => {
 Userctrl.conversation = async (req, res) => {
     console.log('********* conversation**********');
     let { senderid, receiverid } = req.body;
-     console.log('********* conversation**********',senderid,receiverid);
+    console.log('********* conversation**********', senderid, receiverid);
     if (!req.body && !senderid && !receiverid) {
         res.status(401).send('Please sned complete Parameter ');
     }
 
     try {
-            const key = [senderid, receiverid].sort().join('_');
-             console.log('conversation key:', key);
+        const key = [senderid, receiverid].sort().join('_');
+        console.log('conversation key:', key);
         let user = await conversation.findOne({ conversationKey: key });
         if (user) {
             res.send(user);
         } else {
             let user = new conversation({
                 conversation: key
-                
+
             })
             let save = await user.save()
             if (save) {
@@ -487,93 +528,93 @@ Userctrl.conversation = async (req, res) => {
 let deleteMessages = {}; // Changed variable name to plural for clarity
 
 async function DeleteMessageWithCron() {
-  try {
-    // Case 1: Delete specific messages with cron jobs
-    if (Object.keys(deleteMessages).length > 0) {
-    const conversationId = Object.keys(deleteMessages)[0];
+    try {
+        // Case 1: Delete specific messages with cron jobs
+        if (Object.keys(deleteMessages).length > 0) {
+            const conversationId = Object.keys(deleteMessages)[0];
 
-     const expires = deleteMessages[conversationId];
-const totalSeconds = Math.floor(expires / 1000);
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
+            const expires = deleteMessages[conversationId];
+            const totalSeconds = Math.floor(expires / 1000);
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
 
 
 
-             const cronTime = `${seconds} ${minutes}  ${hours} * * *`;
-        console.log(cronTime,conversationId,deleteMessages,expires,"data");
-        
-        // Schedule deletion for each message at its specific time
-        cron.schedule(cronTime, async () => {
-            await messageSchema.deleteMany({ conversation: conversationId });
-            delete deleteMessages[conversationId];
-            await conversation.findByIdAndUpdate({ _id: conversationId },{remainTime:null},{ new: true } );
-            console.log(`Deleted messages for conversation ${conversationId}`);
-        });
-        
-    } 
-    // Case 2: Delete all messages (when deleteMessages is empty)
-    else {
-        const conversations = await conversation.find();
-        console.log(conversations,"data");
-      for (const conv of conversations) {
-        await messageSchema.deleteMany({ conversation: conv._id });
-         await conversation.findByIdAndUpdate({ _id: conv._id },{remainTime:null},{ new: true } );
-        console.log(`Deleted all messages for conversation ${conv._id}`);
-      }
+            const cronTime = `${seconds} ${minutes}  ${hours} * * *`;
+            console.log(cronTime, conversationId, deleteMessages, expires, "data");
+
+            // Schedule deletion for each message at its specific time
+            cron.schedule(cronTime, async () => {
+                await messageSchema.deleteMany({ conversation: conversationId });
+                delete deleteMessages[conversationId];
+                await conversation.findByIdAndUpdate({ _id: conversationId }, { remainTime: null }, { new: true });
+                console.log(`Deleted messages for conversation ${conversationId}`);
+            });
+
+        }
+        // Case 2: Delete all messages (when deleteMessages is empty)
+        else {
+            const conversations = await conversation.find();
+            console.log(conversations, "data");
+            for (const conv of conversations) {
+                await messageSchema.deleteMany({ conversation: conv._id });
+                await conversation.findByIdAndUpdate({ _id: conv._id }, { remainTime: null }, { new: true });
+                console.log(`Deleted all messages for conversation ${conv._id}`);
+            }
+        }
+    } catch (error) {
+        console.error('Error in DeleteMessageWithCron:', error);
     }
-  } catch (error) {
-    console.error('Error in DeleteMessageWithCron:', error);
-  }
 }
 
 async function updataconversation(conversationId, text, remainTime) {
-  console.log("**** update conversation function called ****", conversationId, text, remainTime);
+    console.log("**** update conversation function called ****", conversationId, text, remainTime);
 
-  return new Promise(async (resolve, reject) => {
-    try {
-      // Step 1: Fetch existing conversation
-      const existingConversation = await conversation.findById(conversationId);
+    return new Promise(async (resolve, reject) => {
+        try {
+            // Step 1: Fetch existing conversation
+            const existingConversation = await conversation.findById(conversationId);
 
-      if (!existingConversation) {
-        throw new Error("Conversation not found");
-      }
+            if (!existingConversation) {
+                throw new Error("Conversation not found");
+            }
 
-      // Step 2: Check remdainTime
-      if (existingConversation.remdainTime === null) {
-        // Step 3: Update only if remdainTime is null
-        const updatedConversation = await conversation.findByIdAndUpdate(
-          conversationId,
-          {
-            message: text,
-            remdainTime: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours from now
-          },
-          { new: true }
-        );
+            // Step 2: Check remdainTime
+            if (existingConversation.remdainTime === null) {
+                // Step 3: Update only if remdainTime is null
+                const updatedConversation = await conversation.findByIdAndUpdate(
+                    conversationId,
+                    {
+                        message: text,
+                        remdainTime: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours from now
+                    },
+                    { new: true }
+                );
 
-        // Step 4: Set up deletion timer
-        deleteMessages[conversationId] = 86400000;
-        DeleteMessageWithCron();
+                // Step 4: Set up deletion timer
+                deleteMessages[conversationId] = 86400000;
+                DeleteMessageWithCron();
 
-        console.log("Conversation updated successfully:", updatedConversation);
-      } else {
-        console.log("remdainTime already set, no update performed.");
-      }
+                console.log("Conversation updated successfully:", updatedConversation);
+            } else {
+                console.log("remdainTime already set, no update performed.");
+            }
 
-      resolve();
-    } catch (error) {
-      console.error("Error updating conversation:", error);
-      reject(error);
-    }
-  });
+            resolve();
+        } catch (error) {
+            console.error("Error updating conversation:", error);
+            reject(error);
+        }
+    });
 }
 
 // send message
 Userctrl.sendmessage = async (req, res) => {
-    let { conversation, sender, recipient, text,remainTime } = req.body;
+    let { conversation, sender, recipient, text, remainTime } = req.body;
     console.log("**** send message function called ****", req.body);
-        console.log(deleteMessages,"deleteMessage");
-        
+    console.log(deleteMessages, "deleteMessage");
+
     if (!conversation && !sender && !recipient && !text) {
         res.send('Please send complete Parameter');
     } else {
@@ -590,13 +631,13 @@ Userctrl.sendmessage = async (req, res) => {
                     type: 'new_message',
                     data: message
                 })
-                 updataconversation(conversation, text, remainTime);
+                updataconversation(conversation, text, remainTime);
                 res.status(200).send({
                     messsage: 'save',
                     data: message,
 
                 })
-          
+
 
 
             } else {
@@ -643,17 +684,17 @@ Userctrl.updateMessage = async (req, res) => {
 
 //fetch message
 Userctrl.findmessage = async (req, res) => {
-    
+
     let { conversation } = req.body;
-    console.log("**** message find *******",conversation);
+    console.log("**** message find *******", conversation);
     if (!req.body && !conversation) {
         res.send('Please send complete Parameter');
     } else {
         try {
             let message = await messageSchema.find({ conversation });
             if (message) {
-                console.log(message,"message");
-                
+                console.log(message, "message");
+
                 res.send({
                     data: message
                 })
