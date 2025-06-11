@@ -166,7 +166,7 @@ obj.socketHandler = (io) => {
     // ❌ Call Ended
     // ========================
     socket.on("End-Call", async ({ sender, receiver,endCall,Type , StartTime, EndTime, DurationTime , }) => {
-      console.log( "call cross between ",sender,receiver,endCall,Type, StartTime, EndTime, DurationTime);
+    
       
       const callId = `${sender}_${receiver}`;
       if (activeCalls.has(callId)) {
@@ -181,7 +181,7 @@ obj.socketHandler = (io) => {
       }
 
       let respones = await OtherFUnction.StrogeCallHistor(sender, receiver, Type, StartTime, EndTime, DurationTime, obj.sendToUser);
-      console.log(`Call history stored for ${sender} and ${receiver}` ,respones);
+  
       
     });
 

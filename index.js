@@ -15,10 +15,11 @@ const { MongoClient, GridFSBucket } = require('mongodb');
 const socketHandler = require('./router/socket');
 const fetch = require("node-fetch");
 
+const allowedOrigin = 'https://whatsapp-clone-seven-pi-17.vercel.app';
 const app = express();
 app.use(cors());
 app.use(cors({
-  origin: 'http://localhost:3000', // Your frontend URL
+  origin: allowedOrigin, // Your frontend URL
   credentials: true, // This is crucial!
   exposedHeaders: ['set-cookie']
 }));
@@ -29,7 +30,7 @@ let port = process.env.PORT || 9001;
 const server = http.createServer(app);
 const io = new Server(server,{
     cors:{
-      origin: '*', // ✅ Allow both local & network clients
+      origin: allowedOrigin, // ✅ Allow both local & network clients
       methods: ["GET", "POST"],
       allowedHeaders: ["Content-Type"],
       credentials: true

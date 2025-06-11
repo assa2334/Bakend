@@ -95,7 +95,7 @@ const user = {
                     type: 'new_message',
                     data: savedCall
                 })
-            console.log("✅ Call history saved successfully:", savedCall);
+            
             return { success: true, message: "Call history saved", data: savedCall };
         } catch (error) {
             console.error("❌ Error saving call history:", error);
