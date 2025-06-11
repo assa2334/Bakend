@@ -52,7 +52,7 @@ Userctrl.addUser = async (req, res) => {
             const response = await fetch(`https://get.geojs.io/v1/ip/geo.json`);
 
             const data = await response.json(); // Extract JSON
-            console.log(data, "data from geojs");
+          
 
 
             console.log('user not find 333333');
@@ -355,7 +355,7 @@ Userctrl.loginUser = async (req, res) => {
                 token
             });
         } else {
-            return res.status(401).send('Invalid credentials');
+            return res.status(401).send({message:'Invalid credentials'});
         }
     } catch (error) {
         console.error('Login error:', error);
