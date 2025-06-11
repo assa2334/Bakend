@@ -15,24 +15,29 @@ const { MongoClient, GridFSBucket } = require('mongodb');
 const socketHandler = require('./router/socket');
 const fetch = require("node-fetch");
 
-
+const allowedOrigin = 'https://whatsapp-clone-one-phi.vercel.app';
 const app = express();
 app.use(cors());
+app.use(cors({
+  origin: allowedOrigin, // Your frontend URL
+  credentials: true, // This is crucial!
+  exposedHeaders: ['set-cookie']
+}));
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
-let port = process.env.PORT;
+let port = process.env.PORT || 9001;
 const server = http.createServer(app);
 const io = new Server(server,{
     cors:{
-      origin: '*', // ✅ Allow both local & network clients
+      origin: allowedOrigin, // ✅ Allow both local & network clients
       methods: ["GET", "POST"],
       allowedHeaders: ["Content-Type"],
       credentials: true
     },
 })
 
-socketHandler(io);
+socketHandler.socketHandler(io);
 
 app.get('/',(req,res)=>{
     res.send('Welcome');
@@ -42,10 +47,10 @@ app.use('/api/v8',route)
 
 
 
-mongoose.connect(`mongodb+srv://${process.env.NAME}:${process.env.PASSWORD}@cluster0.mxi10.mongodb.net/?retryWrites=true&w=majority&appName=${process.env.PROJECT}`, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-});
+// mongoose.connect(`${process.env.BACKENDURL}`, {
+//     useNewUrlParser: true,
+//     useUnifiedTopology: true,
+// });
 
 const conn = mongoose.connection;
 let gridFSBucket;
@@ -57,7 +62,7 @@ conn.once('open', () => {
     });
 });
 
-app.get('/file/:filename', async (req, res) => {
+app.get('/api/files/:filename', async (req, res) => {
     const { filename } = req.params;
     console.log('*********** File name ************', filename);
   
@@ -105,7 +110,75 @@ app.get('/file/:filename', async (req, res) => {
   });
   
 
+// app.get('/api/files/:filename', async (req, res) => {
+//     const { filename } = req.params;
+//     console.log('*********** File name ************', filename);
 
+//     try {
+//         // Check if the file exists in GridFS
+//         const file = await conn.db.collection('uploads.files').findOne({ filename });
+
+//         if (!file) {
+//             return res.status(404).send(`File not found: ${filename}`);
+//         }
+
+//         const mime = require('mime-types');
+//         const fileExtension = mime.extension(file.contentType) || 'bin';
+//         console.log('*********** File Extension ************', fileExtension);
+
+//         // Set common headers
+//         res.set('Content-Type', file.contentType);
+//         res.set('Accept-Ranges', 'bytes'); // Enable range requests
+//         res.set('Cache-Control', 'public, max-age=31536000'); // Cache for 1 year
+
+//         // Handle range requests (for parallel downloads)
+//         const range = req.headers.range;
+//         if (range) {
+//             // Parse range (example: "bytes=0-999")
+//             const parts = range.replace(/bytes=/, "").split("-");
+//             const start = parseInt(parts[0], 10);
+//             const end = parts[1] ? parseInt(parts[1], 10) : file.length - 1;
+//             const chunkSize = (end - start) + 1;
+
+//             // Set partial content headers
+//             res.status(206);
+//             res.set('Content-Range', `bytes ${start}-${end}/${file.length}`);
+//             res.set('Content-Length', chunkSize);
+
+//             // Create stream for the specific range
+//             const readStream = gridFSBucket.openDownloadStream(file._id, {
+//                 start,
+//                 end: end + 1 // GridFS expects end to be exclusive
+//             });
+
+//             readStream.on('error', (err) => {
+//                 console.error('Stream error:', err);
+//                 if (!res.headersSent) {
+//                     res.status(500).send('Stream error');
+//                 }
+//             });
+
+//             readStream.pipe(res);
+//         } else {
+//             // For non-range requests or small files
+//             if (file.contentType.startsWith('video/') || file.contentType.startsWith('audio/')) {
+//                 // Stream media files directly
+//                 res.set('Content-Length', file.length);
+//                 const readStream = gridFSBucket.openDownloadStreamByName(filename);
+//                 readStream.pipe(res);
+//             } else {
+//                 // Download other files as attachment
+//                 res.set('Content-Disposition', `attachment; filename="${file.filename}.${fileExtension}"`);
+//                 res.set('Content-Length', file.length);
+//                 const readStream = gridFSBucket.openDownloadStreamByName(filename);
+//                 readStream.pipe(res);
+//             }
+//         }
+//     } catch (err) {
+//         console.error('Error fetching file:', err);
+//         res.status(500).send('Error fetching file');
+//     }
+// });
 
 
 

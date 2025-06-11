@@ -33,6 +33,11 @@ router.post('/findmessage', Userctrl.findmessage);
 router.post('/FindUser',middelware.validateToken,Userctrl.FindUser);
 // email verify
 router.post('/emailverify',Userctrl.emailverify);
-
+// update message
+router.put('/updatamessage',Userctrl.updateMessage)
+// delete message
+router.delete('/deletemessage',Userctrl.deleteMessage)
+// get Call History
+router.get('getCallHistory/:conversationId',middelware.validateToken,Userctrl.getCallHistory)
 
 module.exports = router;
