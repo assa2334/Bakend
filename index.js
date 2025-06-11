@@ -15,7 +15,7 @@ const { MongoClient, GridFSBucket } = require('mongodb');
 const socketHandler = require('./router/socket');
 const fetch = require("node-fetch");
 
-const allowedOrigin = 'https://whatsapp-clone-seven-pi-17.vercel.app';
+const allowedOrigin = 'https://whatsapp-clone-one-phi.vercel.app';
 const app = express();
 app.use(cors());
 app.use(cors({
